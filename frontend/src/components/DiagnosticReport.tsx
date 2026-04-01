@@ -12,6 +12,9 @@ interface DiagnosticReportProps {
 export default function DiagnosticReport({ results, onEngineChange }: DiagnosticReportProps) {
   const [selectedLlm, setSelectedLlm] = useState('Gemini');
   
+  // Checking map logic
+  const isHealthy = results?.disease?.toLowerCase().includes('healthy');
+
   // Match the active engine from metadata or results architecture
   const activeEngine = results?.metadata?.engine?.toLowerCase() || 
                        results?.architecture?.toLowerCase() || 
@@ -31,6 +34,23 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
         <Dna className="w-20 h-20 text-orange-600" />
       </div>
       
+      {isHealthy === false && (
+         <div className="mb-6 bg-rose-50 border border-rose-200 p-4 rounded-3xl flex items-start gap-4 animate-pulse relative z-10 mx-auto">
+            <div className="bg-rose-500 rounded-full p-2 text-white shrink-0 mt-1">
+              <Zap className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-black text-rose-800 uppercase tracking-widest text-xs mb-1">
+                Disease Pattern Broadcasted
+              </h4>
+              <p className="text-rose-600/80 text-[11px] font-medium leading-relaxed">
+                We've alerted nearby nodes on the <b>Global Heatmap</b> about this {" "}
+                <span className="underline decoration-rose-400 decoration-2 font-bold">{results?.disease?.replace(/_/g, ' ')}</span> {" "}
+                outbreak. Review the remediation plan below.
+              </p>
+            </div>
+         </div>
+       )}
       <div className="relative z-10 flex flex-col space-y-6">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

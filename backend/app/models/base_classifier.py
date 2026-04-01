@@ -16,11 +16,11 @@ class BaseDiseaseClassifier:
         self.model = None
         self.hf_token = os.getenv("HF_TOKEN")
         self.classes = [
-            "Apple Scab", "Apple Black Rot", "Apple Cedar Rust", "Apple Healthy",
-            "Grape Black Rot", "Grape Esca", "Grape Leaf Blight", "Grape Healthy",
-            "Potato Early Blight", "Potato Late Blight", "Potato Healthy",
-            "Tomato Bacterial Spot", "Tomato Early Blight", "Tomato Late Blight",
-            "Tomato Leaf Mold", "Tomato Septoria Spot", "Tomato Spider Mite", "Tomato Healthy"
+            "Apple___Apple_scab", "Apple___Black_rot", "Apple___Cedar_apple_rust", "Apple___healthy",
+            "Grape___Black_rot", "Grape___Esca_(Black_Measles)", "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)", "Grape___healthy",
+            "Tomato___Bacterial_spot", "Tomato___Early_blight", "Tomato___Late_blight",
+            "Tomato___Leaf_Mold", "Tomato___Septoria_leaf_spot", "Tomato___Spider_mites Two-spotted_spider_mite",
+            "Tomato___Target_Spot", "Tomato___Tomato_Yellow_Leaf_Curl_Virus", "Tomato___Tomato_mosaic_virus", "Tomato___healthy"
         ]
 
     def _load_model(self):
@@ -67,12 +67,16 @@ class BaseDiseaseClassifier:
         idx = np.argmax(predictions[0])
         confidence = float(predictions[0][idx])
         
-        raw_label = self.classes[idx] if idx < len(self.classes) else "Unknown Pathology"
+        raw_label = self.classes[idx] if idx < len(self.classes) else "Unknown___Pathology"
         
-        # Parse label into crop and disease (split by first space)
-        parts = raw_label.split(' ', 1)
-        crop = parts[0] if len(parts) > 0 else "Unknown"
-        disease = parts[1] if len(parts) > 1 else "Unknown"
+        # Parse label into crop and disease (split by '___')
+        if "___" in raw_label:
+            parts = raw_label.split("___")
+        else:
+            parts = raw_label.split(" ", 1)
+
+        crop = parts[0].replace("_", " ") if len(parts) > 0 else "Unknown"
+        disease = parts[1].replace("_", " ") if len(parts) > 1 else "Unknown"
         
         return {
             "crop": crop,

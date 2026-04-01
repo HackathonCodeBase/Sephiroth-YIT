@@ -1,6 +1,7 @@
 'use client';
 
-import { Activity, Leaf, ShieldCheck, Zap } from 'lucide-react';
+import { Activity, Leaf, ShieldCheck, Zap, Map } from 'lucide-react';
+import Link from 'next/link';
 
 interface HeaderProps {
   backendStatus: boolean;
@@ -13,20 +14,31 @@ export default function Header({ backendStatus }: HeaderProps) {
         
         {/* Branding Section */}
         <div className="flex items-center gap-4">
-           <div className="p-2.5 bg-gradient-to-br from-orange-500 to-rose-600 rounded-xl shadow-lg ring-4 ring-orange-50/50 transition-transform hover:scale-105 active:scale-95 cursor-pointer">
-             <Leaf className="w-6 h-6 text-white" />
-           </div>
-           <div className="hidden sm:block">
-             <h1 className="text-xl font-black tracking-tighter flex items-center gap-2 text-slate-800 uppercase">
-               Matrix Fusion <span className="text-orange-500">Sephiroth</span>
-             </h1>
-             <p className="text-[9px] text-orange-600/60 font-black uppercase tracking-[0.3em]">Neural Disease Intelligence</p>
-           </div>
+           <Link href="/">
+             <div className="p-2.5 bg-gradient-to-br from-orange-500 to-rose-600 rounded-xl shadow-lg ring-4 ring-orange-50/50 transition-transform hover:scale-105 active:scale-95 cursor-pointer">
+               <Leaf className="w-6 h-6 text-white" />
+             </div>
+           </Link>
+           <Link href="/">
+             <div className="hidden sm:block cursor-pointer">
+               <h1 className="text-xl font-black tracking-tighter flex items-center gap-2 text-slate-800 uppercase">
+                 Matrix Fusion <span className="text-orange-500">Sephiroth</span>
+               </h1>
+               <p className="text-[9px] text-orange-600/60 font-black uppercase tracking-[0.3em]">Neural Disease Intelligence</p>
+             </div>
+           </Link>
         </div>
 
         {/* Status Indicators Section */}
         <div className="flex items-center gap-4 lg:gap-8">
           
+          <Link href="/heatmap">
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-rose-600 rounded-2xl shadow-lg hover:scale-105 active:scale-95 cursor-pointer transition-all">
+              <Map className="w-4 h-4 text-white" />
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">Global Heatmap</span>
+            </div>
+          </Link>
+
           <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-rose-50 rounded-2xl border border-rose-100/50">
             <Zap className="w-4 h-4 text-rose-500" />
             <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Real-Time Core Active</span>

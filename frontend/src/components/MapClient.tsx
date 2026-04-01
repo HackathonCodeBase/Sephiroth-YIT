@@ -102,13 +102,19 @@ export default function MapClient({ data }: MapClientProps) {
             <Marker key={item.id || idx} position={[item.latitude, item.longitude]}>
               <Popup>
                 {item.is_simulator ? (
-                  <div className="font-sans text-center">
+                  <div className="font-sans text-center min-w-[150px]">
                     <div className="font-bold text-sm text-slate-800 uppercase mb-1">
                       {item.crop}
                     </div>
-                    <div className="text-xs text-slate-600 bg-blue-50 p-2 rounded-lg italic border border-blue-200">
+                    <div className="text-xs text-slate-600 bg-blue-50 p-2 rounded-lg italic border border-blue-200 mb-2">
                       {item.description}
                     </div>
+                    
+                    {item.notified !== undefined && (
+                      <div className={`mt-2 p-1.5 rounded text-xs font-bold text-white uppercase tracking-wider ${item.notified ? 'bg-rose-500' : 'bg-emerald-500'}`}>
+                        {item.notified ? `ALERTED (${item.last_distance?.toFixed(1)} km)` : `SAFE / NO ALERT (${item.last_distance?.toFixed(1)} km)`}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="font-sans">

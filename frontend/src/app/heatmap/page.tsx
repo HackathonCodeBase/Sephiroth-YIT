@@ -81,7 +81,20 @@ export default function HeatmapPage() {
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
       if (msg.type === "NEW_OUTBREAK") {
-        setData((prev) => [...prev, msg.data]);
+        setData((prev) => {
+          // Update simulator marker status
+          const updated = prev.map(p => {
+             if (p.is_simulator) {
+               return {
+                 ...p, 
+                 notified: msg.is_at_risk,
+                 last_distance: msg.client_distance_km
+               };
+             }
+             return p;
+          });
+          return [...updated, msg.data];
+        });
         
         // Filter out if not at risk and user wanted it that way, but let's just let the UI handle showing it as "safe"
         // Wait, requirement: "while the third person ... outside 2km radius ... so he isnt notified abt this issue"

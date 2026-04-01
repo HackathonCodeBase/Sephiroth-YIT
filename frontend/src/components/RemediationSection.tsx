@@ -8,46 +8,56 @@ interface RemediationSectionProps {
 }
 
 export default function RemediationSection({ results }: RemediationSectionProps) {
+  const remedies = results?.intelligence?.ai_insights?.remedies || [];
+
   return (
-    <div className="glass-white bg-gradient-to-br from-orange-600 to-rose-700 shadow-2xl p-6 md:p-8 rounded-[40px] space-y-6 relative overflow-hidden flex flex-col justify-between border-orange-400 border-2">
-      <div className="absolute top-0 right-0 p-8 opacity-20 scale-[2.5] text-white">
-        <Sparkles className="w-20 h-20" />
+    <div className="glass-white h-full shadow-xl bg-white border-orange-100 border-2 p-3 md:p-4 rounded-[32px] flex flex-col relative overflow-hidden backdrop-blur-xl group">
+      <div className="absolute top-0 right-0 p-4 opacity-[0.03] scale-[1.5] text-orange-600 pointer-events-none">
+        <Sparkles className="w-16 h-16" />
       </div>
       
-      <div className="relative z-10 space-y-4 lg:space-y-6">
-        <div className="flex items-center gap-3">
-           <div className="h-[2px] flex-grow bg-white/20"></div>
-           <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-200 shrink-0">REMEDIATION STRATEGY</h4>
-           <div className="h-[2px] flex-grow bg-white/20"></div>
-        </div>
-        
-        <div className="space-y-2.5 lg:space-y-3.5">
-          {results.intelligence.ai_insights.remedies.map((remedy: string, idx: number) => (
-            <div key={idx} className="flex gap-4 text-xs md:text-sm text-white items-start p-3.5 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md group hover:bg-white/20 transition-all cursor-default">
-              <span className="flex items-center justify-center w-6 h-6 bg-white/20 rounded-lg text-[10px] font-black text-orange-100 shrink-0 mt-0.5">{idx + 1}</span>
-              <span className="font-bold leading-relaxed">{remedy}</span>
-            </div>
-          ))}
+      <div className="relative z-10 mb-3">
+        <div className="flex items-center w-full">
+           <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 whitespace-nowrap">── AI Recommendation </h4>
+           <div className="h-[1px] w-full bg-gradient-to-r from-orange-500 to-transparent ml-3"></div>
         </div>
       </div>
 
-      <div className="relative z-10 pt-6 mt-4 border-t border-white/20 space-y-4">
-         <div className="flex justify-between items-center px-2">
-            <span className="text-[10px] font-black text-orange-200 uppercase tracking-widest">Clinical Prognosis</span>
-            <span className="text-[10px] font-black text-white bg-white/20 px-3 py-1 rounded-full uppercase tracking-tighter">
-              {results.intelligence.ai_insights.recovery}
+      <div className="relative z-10 flex-1 space-y-3 px-1 overflow-y-auto custom-scrollbar">
+        {remedies.length > 0 ? remedies.map((remedy: string, idx: number) => (
+          <div key={idx} className="flex gap-3 items-start animate-in slide-in-from-left-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
+            <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-orange-50 text-orange-600 rounded-lg text-[11px] font-black border border-orange-100 shadow-sm">
+              {idx + 1}
+            </span>
+            <p className="text-[15px] font-bold text-slate-700 leading-snug pt-0.5 tracking-tight group-hover:text-slate-900 transition-colors">
+              {remedy}
+            </p>
+          </div>
+        )) : (
+          <div className="py-10 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">
+              Scanning for optimal remediation protocols...
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="relative z-10 pt-3 mt-3 border-t border-slate-100 space-y-3">
+         <div className="flex items-center gap-3">
+            <div className="w-1 h-1 bg-orange-500 rounded-full animate-pulse"></div>
+            <span className="text-[12px] font-black text-slate-900 uppercase tracking-tighter">
+              Est. Recovery Index: <span className="text-orange-600 ml-1 text-[13px] underline underline-offset-4 decoration-orange-200">{results?.intelligence?.ai_insights?.recovery || 'Quantifying...'}</span>
             </span>
          </div>
-         <div className="p-4 bg-white/10 rounded-3xl border border-white/10 flex items-center gap-4 backdrop-blur-md shadow-inner">
-            <div className="p-2 bg-rose-400 rounded-2xl">
-              <Info className="w-5 h-5 text-white" />
-            </div>
-            <div className="space-y-1">
-               <span className="text-[9px] font-black text-orange-200 uppercase tracking-[0.1em] block">Preventive Protocol</span>
-               <p className="text-[10px] text-white font-bold leading-relaxed opacity-90">
-                 {results.intelligence.ai_insights.preventive_note}
-               </p>
-            </div>
+         
+         <div className="space-y-1 p-3 bg-slate-50/50 rounded-[20px] border border-slate-100 shadow-inner group">
+            <span className="text-[9px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2">
+              <Info className="w-3 h-3" />
+              Preventive Protocol
+            </span>
+            <p className="text-[12px] text-slate-500 font-bold leading-tight italic group-hover:text-slate-700 transition-colors">
+              {results?.intelligence?.ai_insights?.preventive_note || 'Sensor fusion pending further observation.'}
+            </p>
          </div>
       </div>
     </div>

@@ -6,7 +6,11 @@ from typing import Dict, Any
 router = APIRouter()
 
 @router.post("/crop-analysis")
-async def analyze_crop(file: UploadFile = File(...), crop_type: str = Form("auto")):
+async def analyze_crop(
+    file: UploadFile = File(...), 
+    crop_type: str = Form("auto"),
+    vision_engine: str = Form("mobilenet")
+):
     """
     Main endpoint for analyzing leaf photographs/drone images.
     """
@@ -18,37 +22,14 @@ async def analyze_crop(file: UploadFile = File(...), crop_type: str = Form("auto
         # Reading file content
         content = await file.read()
         
-        # Step 0: Clarity Validation
-        is_invalid, error_msg = analysis_service.validate_clarity(content)
-        if is_invalid:
-             raise HTTPException(
-                status_code=400, 
-                detail=error_msg
-             )
-
-        # Step 1: Use friends' CV model (placeholder)
-        analysis_result = analysis_service.analyze_image(content, crop_type=crop_type)
-        
-        # Step 2: Use LLM for expert advice
-        ai_insights = llm_service.get_agronomic_advice(
-            disease_name=analysis_result["disease_detected"],
-            severity=analysis_result["severity"],
-            crop_type=crop_type
-        )
-        
-        # Combining results
-        response_data = {
-            "analysis": analysis_result,
-            "intelligence": ai_insights,
-            "filename": file.filename,
-            "status": "success",
-            "metadata": {
-                "engine": "Crop-Vision 4.0 (Custom Embedding)",
-                "processor": "FastAPI Hybrid Worker"
-            }
+        # Step 1: Use friends' CV model
+        analysis_result = analysis_service.analyze_image(content, crop_type=crop_type, vision_engine=vision_engine)
+        # Return EXACT raw keys as requested
+        return {
+            "crop": analysis_result["crop"],
+            "disease": analysis_result["disease"],
+            "confidence": analysis_result["confidence"]
         }
-        
-        return response_data
         
     except Exception as e:
         print(f"Error during analysis: {e}")

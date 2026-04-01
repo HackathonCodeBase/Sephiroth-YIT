@@ -16,6 +16,7 @@ export default function Home() {
   const [analyzing, setAnalyzing] = useState(false);
   const [backendStatus, setBackendStatus] = useState<unknown>(null);
   const [cropType, setCropType] = useState('Tomato');
+  const [visionEngine, setVisionEngine] = useState('mobilenet');
   const [blurError, setBlurError] = useState<string | null>(null);
   const [checkingBlur, setCheckingBlur] = useState(false);
 
@@ -45,49 +46,53 @@ export default function Home() {
     }
   };
 
-  const handleUpload = async () => {
+  const onEngineChange = (engineId: string) => {
+    setVisionEngine(engineId);
+    // Auto-re-analyze if an image is already uploaded
+    if (file && !analyzing) {
+       handleUpload(engineId);
+    }
+  };
+
+  const handleUpload = async (overrideEngine?: string) => {
     if (!file) return;
     setAnalyzing(true);
 
-    setTimeout(() => {
-      const mockResult = {
-        "analysis": {
-          "disease_detected": "Tomato Yellow Leaf Curl Virus",
-          "confidence": 0.92,
-          "severity": "Moderate",
-          "timestamp": Date.now() / 1000
-        },
-        "intelligence": {
-          "ai_insights": {
-            "location": "Mangalore, Karnataka, India",
-            "time_context": "Early Morning — ideal spraying window",
-            "remedies": [
-              "Remove infected plants immediately to prevent vector spread",
-              "Apply neem oil spray now (6–8 AM is optimal in Kerala humidity)",
-              "Deploy yellow sticky traps to control whitefly vectors",
-              "Avoid chemical spraying — rain forecast within 6 hours",
-              "Monitor adjacent sectors; high humidity accelerates spread"
-            ],
-            "recovery": "14–21 days with immediate intervention",
-            "preventive_note": "Pre-monsoon conditions in Kerala increase fungal risk — inspect weekly"
-          },
-          "crop_type": cropType
-        },
-        "status": "success"
-      };
+    try {
+      // Import API_BASE_URL dynamically or assume it's available
+      const { API_BASE_URL } = await import('@/config');
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('crop_type', cropType);
+      formData.append('vision_engine', overrideEngine || visionEngine);
 
-      try {
-        sessionStorage.setItem('cropAnalysisResults', JSON.stringify(mockResult));
-        if (imagePreview) {
-            sessionStorage.setItem('cropImagePreview', imagePreview);
-        }
-        setAnalyzing(false);
-        router.push('/analysis');
-      } catch (err) {
-        console.error("Storage failed:", err);
-        setAnalyzing(false);
+      const response = await fetch(`${API_BASE_URL}/api/v1/crop-analysis`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Analysis failed');
       }
-    }, 1500);
+
+      const result = await response.json();
+      
+      // Store real results in session storage for the analysis page
+      sessionStorage.setItem('cropAnalysisResults', JSON.stringify(result));
+      if (imagePreview) {
+          sessionStorage.setItem('cropImagePreview', imagePreview);
+      }
+      
+      setAnalyzing(false);
+      router.push('/analysis');
+    } catch (err) {
+      console.error("Analysis failed:", err);
+      // In case of error, show alert or handle gracefully
+      alert(err instanceof Error ? err.message : "Error connecting to AI Matrix");
+      setAnalyzing(false);
+    }
   };
 
   return (
@@ -117,6 +122,8 @@ export default function Home() {
               analyzing={analyzing}
               cropType={cropType}
               setCropType={setCropType}
+              visionEngine={visionEngine}
+              setVisionEngine={setVisionEngine}
               handleFileChange={handleFileChange}
               handleUpload={handleUpload}
               blurError={blurError}

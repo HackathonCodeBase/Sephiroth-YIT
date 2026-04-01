@@ -9,6 +9,8 @@ interface AnalysisPanelProps {
   analyzing: boolean;
   cropType: string;
   setCropType: (val: string) => void;
+  visionEngine: string;
+  setVisionEngine: (val: string) => void;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleUpload: () => void;
   blurError: string | null;
@@ -21,6 +23,8 @@ export default function AnalysisPanel({
   analyzing,
   cropType,
   setCropType,
+  visionEngine,
+  setVisionEngine,
   handleFileChange,
   handleUpload,
   blurError,
@@ -95,23 +99,51 @@ export default function AnalysisPanel({
               </h2>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Active Cultivar</label>
-              <div className="relative group">
-                <div className="w-full bg-white border-2 border-slate-100 group-hover:border-orange-500/30 rounded-[32px] px-6 py-5 text-sm font-bold flex items-center justify-between transition-all shadow-sm">
-                  <span className="text-slate-700">{cropType}</span>
-                  <ChevronRight className="w-5 h-5 text-slate-400" />
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Vision Engine</label>
+                <div className="relative">
+                  <div 
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full bg-white border-2 border-slate-100 hover:border-orange-500/30 rounded-[24px] px-5 py-4 text-xs font-bold flex items-center justify-between transition-all shadow-sm cursor-pointer"
+                  >
+                    <span className="text-slate-700 uppercase">
+                      {[
+                        {id: 'mobilenet', name: 'MobileNet V2'},
+                        {id: 'densenet', name: 'DenseNet-121'},
+                        {id: 'resnet', name: 'ResNet-50'},
+                        {id: 'efficientnet', name: 'EffNet-B4 (Beta)'}
+                      ].find(e => e.id === visionEngine)?.name || visionEngine}
+                    </span>
+                    <Cpu className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-orange-500' : ''}`} />
+                  </div>
+                  
+                  {isDropdownOpen && (
+                    <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border-2 border-orange-100 rounded-[24px] shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {[
+                        {id: 'mobilenet', name: 'MobileNet V2'},
+                        {id: 'densenet', name: 'DenseNet-121'},
+                        {id: 'resnet', name: 'ResNet-50'},
+                        {id: 'efficientnet', name: 'EffNet-B4 (Beta)'}
+                      ].map((engine) => (
+                        <div 
+                          key={engine.id}
+                          onClick={() => {
+                            setVisionEngine(engine.id);
+                            setIsDropdownOpen(false);
+                          }}
+                          className={`px-5 py-4 text-xs font-bold cursor-pointer transition-colors ${
+                            visionEngine === engine.id 
+                            ? 'bg-orange-50 text-orange-600' 
+                            : 'text-slate-700 hover:bg-slate-50 hover:text-orange-500'
+                          }`}
+                        >
+                          {engine.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                
-                <select 
-                  value={cropType}
-                  onChange={(e) => setCropType(e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50 appearance-none bg-transparent"
-                >
-                  {['Tomato', 'Potato', 'Corn', 'Apple', 'Grape', 'Rice', 'Wheat'].map((crop) => (
-                    <option key={crop} value={crop} className="text-slate-900">{crop}</option>
-                  ))}
-                </select>
               </div>
             </div>
             

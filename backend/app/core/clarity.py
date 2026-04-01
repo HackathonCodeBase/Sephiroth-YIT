@@ -3,7 +3,7 @@ import numpy as np
 
 class ClarityValidator:
     @staticmethod
-    def validate(image_bytes: bytes, laplacian_threshold: float = 130.0) -> tuple[bool, str | None]:
+    def validate(image_bytes: bytes, laplacian_threshold: float = 10.0) -> tuple[bool, str | None]:
         """
         Uses Laplacian variance for sharpness and mean for brightness.
         Returns (is_invalid, error_message).
@@ -32,13 +32,11 @@ class ClarityValidator:
             print(f"Backend Clarity Check - Variance: {variance:.2f}, Brightness: {brightness:.2f}")
             
             if variance < laplacian_threshold:
-                return True, f"Analysis focus failed. Sharpness variance [{variance:.1f}] is below diagnostic threshold [130.0]."
+                return True, f"Analysis focus failed. Sharpness variance [{variance:.1f}] is below diagnostic threshold [{laplacian_threshold:.1f}]."
             
             if brightness < 35:
+                # Still keep a loose brightness check to prevent pure black images
                 return True, f"Luminance [{brightness:.1f}] is insufficient for pathology analysis."
-            
-            if brightness > 250:
-                return True, f"Luminance [{brightness:.1f}] is over-saturated for sensor analysis."
             
             return False, None
             

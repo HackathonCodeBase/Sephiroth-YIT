@@ -8,3 +8,6 @@ pydantic-settings
 python-multipart
 opencv-python-headless
 openai
+tensorflow-cpu
+huggingface_hub
+h5py

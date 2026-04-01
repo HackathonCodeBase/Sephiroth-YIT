@@ -1,49 +1,34 @@
 import time
-import cv2
-import numpy as np
 from typing import Dict, Any
 from app.models.disease_classifier import classifier_engine
-from app.core.clarity import clarity_validator
 
 class CropAnalysisService:
     @staticmethod
-    def validate_clarity(image_bytes: bytes, threshold: float = 130.0) -> tuple[bool, str | None]:
-        return clarity_validator.validate(image_bytes, threshold)
-
-    @staticmethod
-    def analyze_image(image_bytes: bytes, crop_type: str = "auto") -> Dict[str, Any]:
+    def analyze_image(image_bytes: bytes, crop_type: str = "auto", vision_engine: str = "mobilenet") -> Dict[str, Any]:
         """
-        Processes image using the TensorFlow classifier (ResNet/MobileNet skeleton) 
+        Processes image using the requested Vision classifier 
         and returns disease analysis.
         """
-        # Mock prediction logic based on crop_type
-        if crop_type.lower() == 'tomato':
-            disease_name = "Tomato Yellow Leaf Curl Virus"
-        else:
-            disease_name = "Late Blight"
-            
-        confidence = 0.92
+        # Call the actual classifier engine
+        prediction = classifier_engine.predict(image_bytes, engine_type=vision_engine)
         
-        severity_map = {
-            "Tomato Yellow Leaf Curl Virus": "Moderate",
-            "Healthy": "None",
-            "Leaf Spot": "Moderate",
-            "Late Blight": "High",
-            "Rust": "Mild",
-            "Insects": "Moderate",
-            "Nutrient Deficiency": "Low"
-        }
+        crop_name = prediction["crop"]
+        disease_name = prediction["disease"]
+        confidence = prediction["confidence"]
+        architecture = prediction["architecture"]
         
-        severity = severity_map.get(disease_name, "Moderate")
+        full_label = f"{crop_name} {disease_name}"
         
         return {
-            "disease_detected": disease_name,
+            "crop": crop_name,
+            "disease": disease_name,
+            "disease_detected": full_label, 
             "confidence": confidence,
-            "architecture": "EfficientNet-B4 + Transformer",
-            "severity": severity,
+            "architecture": architecture,
+            "severity": "Moderate",
             "timestamp": time.time(),
             "detected_objects": [
-                {"label": "Pathology-Region", "box": [100, 100, 300, 300], "score": confidence}
+                {"label": "Infected Area", "box": [120, 150, 280, 320], "score": confidence}
             ]
         }
 

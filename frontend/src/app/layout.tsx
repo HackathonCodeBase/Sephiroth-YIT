@@ -13,7 +13,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Matrix Fusion | Sephiroth AI Neural Intelligence",
+  title: "AgroClub Sephiroth | AI Neural Intelligence",
   description: "Advanced Agronomy Neural Disease Detection & Pathology Identification System powered by Sephiroth AgroCare.",
   icons: {
     icon: '/icon.svg',

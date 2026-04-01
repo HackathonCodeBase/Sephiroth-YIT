@@ -152,7 +152,9 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
               <div className="flex flex-col">
                 <span className="font-black text-[9px] text-rose-400 uppercase tracking-[0.2em] mb-1">Inference Context</span>
                 <span className="font-black text-xs text-slate-700 uppercase tracking-tight">
-                  {results.intelligence?.ai_insights?.time_context || 'Optimum Window'}
+                  {typeof results.intelligence?.ai_insights?.time_context === 'object' && results.intelligence?.ai_insights?.time_context !== null 
+                    ? Object.values(results.intelligence.ai_insights.time_context).filter(Boolean).join(' | ') 
+                    : (results.intelligence?.ai_insights?.time_context || 'Optimum Window')}
                 </span>
               </div>
            </div>

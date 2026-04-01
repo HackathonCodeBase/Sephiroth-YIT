@@ -22,7 +22,7 @@ export default function Header({ backendStatus }: HeaderProps) {
            <Link href="/">
              <div className="hidden sm:block cursor-pointer">
                <h1 className="text-xl font-black tracking-tighter flex items-center gap-2 text-slate-800 uppercase">
-                 Matrix Fusion <span className="text-orange-500">Sephiroth</span>
+                 AgroCare <span className="text-orange-500">Sephiroth</span>
                </h1>
                <p className="text-[9px] text-orange-600/60 font-black uppercase tracking-[0.3em]">Neural Disease Intelligence</p>
              </div>

@@ -24,13 +24,15 @@ export default function RemediationSection({ results }: RemediationSectionProps)
       </div>
 
       <div className="relative z-10 flex-1 space-y-3 px-1 overflow-y-auto custom-scrollbar">
-        {remedies.length > 0 ? remedies.map((remedy: string, idx: number) => (
+        {remedies.length > 0 ? remedies.map((remedy: any, idx: number) => (
           <div key={idx} className="flex gap-3 items-start animate-in slide-in-from-left-4 duration-500" style={{ animationDelay: `${idx * 100}ms` }}>
             <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-orange-50 text-orange-600 rounded-lg text-[11px] font-black border border-orange-100 shadow-sm">
               {idx + 1}
             </span>
             <p className="text-[15px] font-bold text-slate-700 leading-snug pt-0.5 tracking-tight group-hover:text-slate-900 transition-colors">
-              {remedy}
+              {typeof remedy === 'object' && remedy !== null 
+                ? (remedy.action || remedy.step || JSON.stringify(remedy)) 
+                : remedy}
             </p>
           </div>
         )) : (
@@ -46,7 +48,11 @@ export default function RemediationSection({ results }: RemediationSectionProps)
          <div className="flex items-center gap-3">
             <div className="w-1 h-1 bg-orange-500 rounded-full animate-pulse"></div>
             <span className="text-[12px] font-black text-slate-900 uppercase tracking-tighter">
-              Est. Recovery Index: <span className="text-orange-600 ml-1 text-[13px] underline underline-offset-4 decoration-orange-200">{results?.intelligence?.ai_insights?.recovery || 'Quantifying...'}</span>
+              Est. Recovery Index: <span className="text-orange-600 ml-1 text-[13px] underline underline-offset-4 decoration-orange-200">
+                {typeof results?.intelligence?.ai_insights?.recovery === 'object' && results?.intelligence?.ai_insights?.recovery !== null
+                  ? Object.values(results.intelligence.ai_insights.recovery).filter(Boolean).join(' | ')
+                  : (results?.intelligence?.ai_insights?.recovery || 'Quantifying...')}
+              </span>
             </span>
          </div>
          
@@ -56,7 +62,9 @@ export default function RemediationSection({ results }: RemediationSectionProps)
               Preventive Protocol
             </span>
             <p className="text-[12px] text-slate-500 font-bold leading-tight italic group-hover:text-slate-700 transition-colors">
-              {results?.intelligence?.ai_insights?.preventive_note || 'Sensor fusion pending further observation.'}
+              {typeof results?.intelligence?.ai_insights?.preventive_note === 'object' && results?.intelligence?.ai_insights?.preventive_note !== null
+                ? Object.values(results.intelligence.ai_insights.preventive_note).filter(Boolean).join(' | ')
+                : (results?.intelligence?.ai_insights?.preventive_note || 'Sensor fusion pending further observation.')}
             </p>
          </div>
       </div>

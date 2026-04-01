@@ -92,9 +92,9 @@ export default function AnalysisPanel({
                 Sephiroth Core Logic
               </div>
               <h2 className="text-4xl md:text-3xl lg:text-4xl font-black leading-tight uppercase tracking-tighter text-slate-900">
-                Pathology <br /> 
+                Sephiroth <br /> 
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-rose-600">
-                  Matrix Analysis
+                  AgroCare
                 </span>
               </h2>
             </div>
@@ -103,46 +103,48 @@ export default function AnalysisPanel({
               <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Vision Engine</label>
                 <div className="relative">
-                  <div 
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="w-full bg-white border-2 border-slate-100 hover:border-orange-500/30 rounded-[24px] px-5 py-4 text-xs font-bold flex items-center justify-between transition-all shadow-sm cursor-pointer"
-                  >
-                    <span className="text-slate-700 uppercase">
-                      {[
-                        {id: 'mobilenet', name: 'MobileNet V2'},
-                        {id: 'densenet', name: 'DenseNet-121'},
-                        {id: 'resnet', name: 'ResNet-50'},
-                        {id: 'efficientnet', name: 'EffNet-B4 (Beta)'}
-                      ].find(e => e.id === visionEngine)?.name || visionEngine}
-                    </span>
-                    <Cpu className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-orange-500' : ''}`} />
-                  </div>
-                  
-                  {isDropdownOpen && (
-                    <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border-2 border-orange-100 rounded-[24px] shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                      {[
-                        {id: 'mobilenet', name: 'MobileNet V2'},
-                        {id: 'densenet', name: 'DenseNet-121'},
-                        {id: 'resnet', name: 'ResNet-50'},
-                        {id: 'efficientnet', name: 'EffNet-B4'}
-                      ].map((engine) => (
-                        <div 
-                          key={engine.id}
-                          onClick={() => {
-                            setVisionEngine(engine.id);
-                            setIsDropdownOpen(false);
-                          }}
-                          className={`px-5 py-4 text-xs font-bold cursor-pointer transition-colors ${
-                            visionEngine === engine.id 
-                            ? 'bg-orange-50 text-orange-600' 
-                            : 'text-slate-700 hover:bg-slate-50 hover:text-orange-500'
-                          }`}
-                        >
-                          {engine.name}
-                        </div>
-                      ))}
+                    <div 
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="w-full bg-white border-2 border-slate-100 hover:border-orange-500/30 rounded-[24px] px-5 py-4 text-xs font-bold flex items-center justify-between transition-all shadow-sm cursor-pointer"
+                    >
+                      <span className="text-slate-700 uppercase">
+                        {[
+                          {id: 'consolidated_core', name: 'Consolidated Result'},
+                          {id: 'mobilenet', name: 'MobileNet'},
+                          {id: 'densenet', name: 'DenseNet'},
+                          {id: 'resnet', name: 'ResNet'},
+                          {id: 'efficientnet', name: 'EfficientNet'}
+                        ].find(e => e.id === visionEngine)?.name || visionEngine}
+                      </span>
+                      <Cpu className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-orange-500' : ''}`} />
                     </div>
-                  )}
+                    
+                    {isDropdownOpen && (
+                      <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border-2 border-orange-100 rounded-[24px] shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                         {[
+                          {id: 'consolidated_core', name: 'Consolidated Result'},
+                          {id: 'mobilenet', name: 'MobileNet'},
+                          {id: 'densenet', name: 'DenseNet'},
+                          {id: 'resnet', name: 'ResNet'},
+                          {id: 'efficientnet', name: 'EfficientNet'}
+                        ].map((engine) => (
+                          <div 
+                            key={engine.id}
+                            onClick={() => {
+                              setVisionEngine(engine.id);
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`px-5 py-4 text-xs font-bold cursor-pointer transition-colors ${
+                              visionEngine === engine.id 
+                              ? 'bg-orange-50 text-orange-600' 
+                              : 'text-slate-700 hover:bg-slate-50 hover:text-orange-500'
+                            }`}
+                          >
+                            {engine.name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
@@ -150,7 +152,7 @@ export default function AnalysisPanel({
           <button 
             type="button"
             disabled={!file || analyzing}
-            onClick={handleUpload}
+            onClick={() => handleUpload()}
             className={`w-full py-5 rounded-[28px] font-black uppercase tracking-[0.2em] text-[11px] flex items-center justify-center gap-3 transition-all
               ${file && !analyzing ? 'bg-gradient-to-r from-orange-500 to-rose-600 hover:scale-[1.02] text-white shadow-xl shadow-orange-500/30 active:scale-[0.98]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}
             `}

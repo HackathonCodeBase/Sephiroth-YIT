@@ -16,7 +16,7 @@ export default function Home() {
   const [analyzing, setAnalyzing] = useState(false);
   const [backendStatus, setBackendStatus] = useState<unknown>(null);
   const [cropType, setCropType] = useState('Tomato');
-  const [visionEngine, setVisionEngine] = useState('mobilenet');
+  const [visionEngine, setVisionEngine] = useState('consolidated_core');
   const [blurError, setBlurError] = useState<string | null>(null);
   const [checkingBlur, setCheckingBlur] = useState(false);
 
@@ -135,7 +135,7 @@ export default function Home() {
         {/* Footnote Branding */}
         <div className="flex justify-center pt-4">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
-            Powered by Matrix Fusion Sephiroth Engine
+            Powered by Sephiroth AgroCare Neural Engine
           </p>
         </div>
       </div>

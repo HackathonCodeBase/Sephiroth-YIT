@@ -10,19 +10,19 @@ interface DiagnosticReportProps {
 }
 
 export default function DiagnosticReport({ results, onEngineChange }: DiagnosticReportProps) {
-  const [selectedLlm, setSelectedLlm] = useState('Gemini');
+  const [selectedLlm, setSelectedLlm] = useState('Groq LPU');
   
   // Match the active engine from metadata or results architecture
   const activeEngine = results?.metadata?.engine?.toLowerCase() || 
                        results?.architecture?.toLowerCase() || 
-                       'mobilenet';
+                       'consolidated_core';
 
-  const [selectedVision, setSelectedVision] = useState(
+  const selectedVision = 
+    activeEngine.includes('consolidated') || activeEngine.includes('expert') || activeEngine.includes('fusion') || activeEngine.includes('ensemble') ? 'consolidated_core' :
     activeEngine.includes('mobilenet') ? 'mobilenet' :
     activeEngine.includes('densenet') ? 'densenet' :
     activeEngine.includes('resnet') ? 'resnet' :
-    activeEngine.includes('efficientnet') ? 'efficientnet' : 'mobilenet'
-  );
+    activeEngine.includes('efficientnet') ? 'efficientnet' : 'consolidated_core';
 
   return (
     <div className="glass-white shadow-2xl bg-white border-orange-100 border-2 p-5 md:p-6 rounded-[40px] relative overflow-hidden backdrop-blur-2xl transition-all duration-500">
@@ -56,7 +56,7 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
                ? 'bg-rose-50 border-rose-200 text-rose-600' 
                : 'bg-orange-50 border-orange-200 text-orange-600'
              }`}>
-               {results?.analysis?.severity || results?.severity || 'Normal'}
+               {(results?.analysis?.severity || results?.severity || 'Normal').toUpperCase()}
              </div>
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.15em]">Proprietary Matrix Processor</span>
                  </div>
                  <div className="flex flex-wrap gap-2">
-                    {['Gemini 1.5 Pro', 'Groq LPU', 'GPT-4o'].map((model) => (
+                    {['Groq LPU'].map((model) => (
                       <button 
                         key={model}
                         onClick={() => setSelectedLlm(model)}
@@ -126,18 +126,18 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
                  </div>
                  <div className="flex flex-wrap gap-2">
                     {[
+                      {id: 'consolidated_core', name: 'Consolidated'},
                       {id: 'mobilenet', name: 'MobileNet'},
                       {id: 'densenet', name: 'DenseNet'},
                       {id: 'resnet', name: 'ResNet'},
-                      {id: 'efficientnet', name: 'EffNet-B4'}
+                      {id: 'efficientnet', name: 'EfficientNet'}
                     ].map((engine) => (
                       <button 
                         key={engine.id}
                         onClick={() => {
-                          setSelectedVision(engine.id);
                           onEngineChange?.(engine.id);
                         }}
-                        className={`flex-1 min-w-[100px] px-4 py-3 rounded-[16px] text-[10px] font-black uppercase tracking-widest transition-all border-2 flex items-center justify-center gap-2 ${
+                        className={`flex-1 min-w-[80px] px-3 py-3 rounded-[16px] text-[10px] font-black uppercase tracking-widest transition-all border-2 flex items-center justify-center gap-2 ${
                           selectedVision === engine.id
                           ? 'bg-orange-500 text-white border-orange-500 shadow-xl shadow-orange-100 scale-105 z-10' 
                           : 'bg-white text-slate-400 border-slate-100 hover:border-orange-200 hover:text-orange-500 hover:bg-orange-50/30'

@@ -22,13 +22,27 @@ async def analyze_crop(
         # Reading file content
         content = await file.read()
         
-        # Step 1: Use friends' CV model
+        # Step 1: Use CV model (Raw image analysis)
         analysis_result = analysis_service.analyze_image(content, crop_type=crop_type, vision_engine=vision_engine)
-        # Return EXACT raw keys as requested
+        
+        # Step 2: Get AI recommendations
+        insights = llm_service.get_agronomic_advice(
+            disease_name=analysis_result["disease"],
+            severity=analysis_result.get("severity", "Moderate"),
+            crop_type=analysis_result["crop"]
+        )
+        
+        # Return full payload for the frontend
         return {
             "crop": analysis_result["crop"],
             "disease": analysis_result["disease"],
-            "confidence": analysis_result["confidence"]
+            "confidence": analysis_result["confidence"],
+            "architecture": analysis_result["architecture"],
+            "severity": analysis_result.get("severity", "Moderate"),
+            "intelligence": insights,
+            "metadata": {
+                "engine": vision_engine
+            }
         }
         
     except Exception as e:

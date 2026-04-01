@@ -33,7 +33,8 @@ async def analyze_crop(file: UploadFile = File(...), crop_type: str = Form("auto
         ai_insights = llm_service.get_agronomic_advice(
             disease_name=analysis_result["disease_detected"],
             severity=analysis_result["severity"],
-            crop_type=crop_type
+            crop_type=crop_type,
+            confidence=analysis_result.get("confidence"),
         )
         
         # Combining results
@@ -50,6 +51,8 @@ async def analyze_crop(file: UploadFile = File(...), crop_type: str = Form("auto
         
         return response_data
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error during analysis: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during analysis.")

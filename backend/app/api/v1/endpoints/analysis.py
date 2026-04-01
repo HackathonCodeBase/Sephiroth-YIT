@@ -18,6 +18,14 @@ async def analyze_crop(file: UploadFile = File(...), crop_type: str = Form("auto
         # Reading file content
         content = await file.read()
         
+        # Step 0: Clarity Validation
+        is_invalid, error_msg = analysis_service.validate_clarity(content)
+        if is_invalid:
+             raise HTTPException(
+                status_code=400, 
+                detail=error_msg
+             )
+
         # Step 1: Use friends' CV model (placeholder)
         analysis_result = analysis_service.analyze_image(content, crop_type=crop_type)
         

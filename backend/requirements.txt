@@ -6,3 +6,5 @@ python-dotenv
 pydantic
 pydantic-settings
 python-multipart
+opencv-python-headless
+openai

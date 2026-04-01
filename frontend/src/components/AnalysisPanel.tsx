@@ -12,6 +12,8 @@ interface AnalysisPanelProps {
   setCropType: (val: string) => void;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleUpload: () => void;
+  blurError: string | null;
+  checkingBlur?: boolean;
 }
 
 export default function AnalysisPanel({
@@ -21,7 +23,9 @@ export default function AnalysisPanel({
   cropType,
   setCropType,
   handleFileChange,
-  handleUpload
+  handleUpload,
+  blurError,
+  checkingBlur
 }: AnalysisPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -55,7 +59,7 @@ export default function AnalysisPanel({
             onDragOver={onDragOver}
             onDrop={onDrop}
             className={`relative w-full aspect-square rounded-[32px] border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden
-              ${imagePreview ? 'border-indigo-500/50' : 'border-slate-200 hover:border-indigo-500/30 hover:bg-slate-50'}
+              ${imagePreview ? 'border-indigo-500/50' : blurError ? 'border-red-500/50 bg-red-50/10' : checkingBlur ? 'border-blue-500/50 bg-blue-50/5' : 'border-slate-200 hover:border-indigo-500/30 hover:bg-slate-50'}
             `}
            >
             <input 
@@ -69,14 +73,24 @@ export default function AnalysisPanel({
             {imagePreview ? (
               <img src={imagePreview} className="w-full h-full object-cover rounded-[30px]" alt="Leaf sample" />
             ) : (
-              <div className="text-center space-y-4">
-                <div className="p-5 bg-slate-100 rounded-3xl mx-auto w-fit group-hover:scale-110 transition-transform">
-                  <Camera className="w-10 h-10 text-indigo-500" />
+              <div className="text-center space-y-4 p-6">
+                <div className={`p-5 rounded-3xl mx-auto w-fit group-hover:scale-110 transition-transform ${blurError ? 'bg-red-100' : 'bg-slate-100'}`}>
+                  <Camera className={`w-10 h-10 ${blurError ? 'text-red-500' : 'text-indigo-500'}`} />
                 </div>
                 <div className="space-y-1">
-                  <p className="font-bold text-lg">Click or drag leaf photo</p>
-                  <p className="text-slate-500 text-sm">Drone imagery or mobile camera shots</p>
+                  <p className={`font-bold text-lg ${blurError ? 'text-red-600' : checkingBlur ? 'text-blue-600' : ''}`}>
+                    {checkingBlur ? 'Verifying Clarity...' : blurError ? 'Action Required' : 'Click or drag leaf photo'}
+                  </p>
+                  <p className="text-slate-500 text-sm">
+                    {checkingBlur ? 'Running Laplacian Variance analysis...' : blurError || 'Drone imagery or mobile camera shots'}
+                  </p>
                 </div>
+              </div>
+            )}
+
+            {checkingBlur && (
+              <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex flex-col items-center justify-center z-10 transition-all duration-300">
+                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
             

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '@/config';
+import { checkImageClarity } from '@/utils/imageClarity';
 
 // Component Imports
 import Header from '@/components/Header';
@@ -18,6 +19,8 @@ export default function Home() {
   const [droneStatus, setDroneStatus] = useState<any>(null);
   const [backendStatus, setBackendStatus] = useState<any>(null);
   const [cropType, setCropType] = useState('Tomato');
+  const [blurError, setBlurError] = useState<string | null>(null);
+  const [checkingBlur, setCheckingBlur] = useState(false);
 
   useEffect(() => {
     // Initial health check
@@ -33,12 +36,30 @@ export default function Home() {
       .catch(() => setDroneStatus(null));
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      setBlurError(null);
+      setFile(null); // Clear previous
+      setImagePreview(null);
+      setResults(null);
+      setCheckingBlur(true);
+
+      // Perform Strict Blur & Clarity Check
+      const { isClear, error, variance, brightness } = await checkImageClarity(selectedFile);
+      setCheckingBlur(false);
+      console.log("Frontend Clarity Check - Variance:", variance, "Brightness:", brightness);
+      
+      if (!isClear) {
+        setBlurError(error || "Image is not clear. Please capture a brighter, sharper photo.");
+        setFile(null);
+        setImagePreview(null);
+        return;
+      }
+
       setFile(selectedFile);
       setImagePreview(URL.createObjectURL(selectedFile));
-      setResults(null);
     }
   };
 
@@ -51,15 +72,32 @@ export default function Home() {
     formData.append('file', file);
     formData.append('crop_type', cropType);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 35000); // 35 second timeout
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/v1/crop-analysis`, {
         method: 'POST',
         body: formData,
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
       const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 400) {
+           setBlurError(data.detail || "Image rejection by backend.");
+        } else {
+           console.error("Server error:", data);
+        }
+        return;
+      }
+      
       setResults(data);
     } catch (error) {
       console.error('Analysis failed:', error);
+      setBlurError("Network or server connection failed. Please try again.");
     } finally {
       setAnalyzing(false);
     }
@@ -90,6 +128,8 @@ export default function Home() {
               setCropType={setCropType}
               handleFileChange={handleFileChange}
               handleUpload={handleUpload}
+              blurError={blurError}
+              checkingBlur={checkingBlur}
             />
 
             <AnimatePresence mode="wait">

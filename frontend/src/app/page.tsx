@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { checkImageClarity } from '@/utils/imageClarity';
+import exifr from 'exifr/dist/lite.esm.js';
 
 import { useRouter } from 'next/navigation';
 
@@ -19,6 +20,9 @@ export default function Home() {
   const [visionEngine, setVisionEngine] = useState('consolidated_core');
   const [blurError, setBlurError] = useState<string | null>(null);
   const [checkingBlur, setCheckingBlur] = useState(false);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [description, setDescription] = useState<string>('');
 
   useEffect(() => {
     // Set system as online immediately for demonstration
@@ -43,6 +47,24 @@ export default function Home() {
 
       setFile(selectedFile);
       setImagePreview(URL.createObjectURL(selectedFile));
+
+      try {
+        const gpsData = await exifr.gps(selectedFile);
+        if (gpsData && gpsData.latitude && gpsData.longitude) {
+          setLatitude(gpsData.latitude);
+          setLongitude(gpsData.longitude);
+        } else {
+          // Fallback to browser geolocation
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((position) => {
+              setLatitude(position.coords.latitude);
+              setLongitude(position.coords.longitude);
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Could not read EXIF data:", err);
+      }
     }
   };
 
@@ -66,6 +88,12 @@ export default function Home() {
       formData.append('file', file);
       formData.append('crop_type', cropType);
       formData.append('vision_engine', overrideEngine || visionEngine);
+      
+      if (latitude !== null && longitude !== null) {
+        formData.append('latitude', String(latitude));
+        formData.append('longitude', String(longitude));
+      }
+      formData.append('description', description);
 
       const response = await fetch(`${API_BASE_URL}/api/v1/crop-analysis`, {
         method: 'POST',
@@ -96,7 +124,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 font-sans p-4 md:p-8 flex flex-col items-center justify-center relative overflow-hidden pt-[110px]">
+    <main className="min-h-screen bg-white text-slate-900 font-sans px-4 pb-4 md:px-8 md:pb-8 pt-[120px] md:pt-[140px] flex flex-col items-center justify-center relative overflow-hidden">
       {/* Matrix / Sephiroth Animated Background */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden bg-white">
         <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-orange-500/10 rounded-full blur-[150px] animate-pulse"></div>
@@ -128,6 +156,8 @@ export default function Home() {
               handleUpload={handleUpload}
               blurError={blurError}
               checkingBlur={checkingBlur}
+              description={description}
+              setDescription={setDescription}
             />
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, Cpu, ShieldCheck, Zap } from 'lucide-react';
+import { Activity, Cpu, ShieldCheck, Zap, Sparkles } from 'lucide-react';
 import React from 'react';
 
 interface DiagnosticReportProps {
@@ -11,6 +11,9 @@ interface DiagnosticReportProps {
 
 export default function DiagnosticReport({ results, onEngineChange }: DiagnosticReportProps) {
   if (!results) return null;
+
+  // Checking map logic
+  const isHealthy = results?.disease?.toLowerCase().includes('healthy');
 
   // Match the active engine from metadata or results architecture
   const activeEngine = results?.metadata?.engine?.toLowerCase() || 
@@ -30,16 +33,51 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
         <ShieldCheck className="w-24 h-24 text-orange-600" />
       </div>
       
-      <div className="space-y-8 relative z-10">
-        {/* Header Badges */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-           <div className="flex items-center gap-3 bg-orange-50/80 px-5 py-2.5 rounded-2xl border border-orange-100/50">
-             <Activity className="w-4 h-4 text-orange-500 animate-pulse" />
-             <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest px-1">Sephiroth Neural Pathology MVD</span>
-           </div>
-           <div className="px-6 py-3 bg-gradient-to-r from-orange-500 to-rose-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-orange-500/20 tracking-tighter">
-              {results.confidence ? Math.round(results.confidence * 100) : 0}% Matrix Match
-           </div>
+      {isHealthy === false && (
+         <div className="mb-6 bg-rose-50 border border-rose-200 p-4 rounded-3xl flex items-start gap-4 animate-pulse relative z-10 mx-auto">
+            <div className="bg-rose-500 rounded-full p-2 text-white shrink-0 mt-1">
+              <Zap className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-black text-rose-800 uppercase tracking-widest text-xs mb-1">
+                Disease Pattern Broadcasted
+              </h4>
+              <p className="text-rose-600/80 text-[11px] font-medium leading-relaxed">
+                We've alerted nearby nodes on the <b>Global Heatmap</b> about this {" "}
+                <span className="underline decoration-rose-400 decoration-2 font-bold">{results?.disease?.replace(/_/g, ' ')}</span> {" "}
+                outbreak. Review the remediation plan below.
+              </p>
+            </div>
+         </div>
+       )}
+      <div className="relative z-10 flex flex-col space-y-6">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(249,115,22,0.6)]"></div>
+              <span className="text-[11px] font-black text-orange-600 uppercase tracking-[0.25em]">Neural Pathology Core Output</span>
+            </div>
+            <h3 className="text-2xl md:text-4xl lg:text-5xl font-black uppercase text-slate-900 leading-none tracking-tighter drop-shadow-sm">
+              {results?.analysis?.disease_detected || 
+               (results?.crop && results?.disease ? `${results.crop} ${results.disease}` : null) || 
+               'Pathology Syncing...'}
+            </h3>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+             <div className="px-5 py-2.5 bg-gradient-to-br from-orange-500 to-rose-600 text-white rounded-[20px] font-black text-[13px] shadow-xl shadow-orange-500/20 uppercase tracking-widest flex items-center gap-2 active:scale-95 transition-transform">
+                <Sparkles className="w-4 h-4" />
+                {Math.round((results?.analysis?.confidence || results?.confidence || 0) * 100)}% Match
+             </div>
+             <div className={`px-5 py-2.5 rounded-[20px] font-black text-[13px] uppercase tracking-widest border-2 transition-colors ${
+               (results?.analysis?.severity || results?.severity || '').toLowerCase().includes('high') 
+               ? 'bg-rose-50 border-rose-200 text-rose-600' 
+               : 'bg-orange-50 border-orange-200 text-orange-600'
+             }`}>
+               {results?.analysis?.severity || results?.severity || 'Normal'}
+             </div>
+          </div>
         </div>
 
         {/* Primary Diagnosis */}

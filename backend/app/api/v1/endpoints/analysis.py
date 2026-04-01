@@ -9,7 +9,10 @@ router = APIRouter()
 async def analyze_crop(
     file: UploadFile = File(...), 
     crop_type: str = Form("auto"),
-    vision_engine: str = Form("consolidated_core")
+    vision_engine: str = Form("consolidated_core"),
+    latitude: float = Form(None),
+    longitude: float = Form(None),
+    description: str = Form(None)
 ):
     """
     Main endpoint for analyzing leaf photographs/drone images.
@@ -24,6 +27,44 @@ async def analyze_crop(
         
         # Step 1: Use Sephiroth CV model (Raw image analysis)
         analysis_result = analysis_service.analyze_image(content, crop_type=crop_type, vision_engine=vision_engine)
+
+        # Store in Database
+        if latitude is not None and longitude is not None:
+            from app.db import get_db
+            try:
+                conn = get_db()
+                cursor = conn.cursor()
+                cursor.execute(
+                    "INSERT INTO reports (latitude, longitude, crop, disease, description) VALUES (?, ?, ?, ?, ?)",
+                    (latitude, longitude, analysis_result["crop"], analysis_result["disease"], description or "")
+                )
+                conn.commit()
+                report_id = cursor.lastrowid
+                conn.close()
+
+                # Trigger WebSocket Broadcast
+                from app.api.v1.endpoints.websockets import manager
+                import asyncio
+                import datetime
+
+                disease_found = analysis_result["disease"]
+                if disease_found and "healthy" not in disease_found.lower():
+                    # Calculate dynamic proximity notification threshold
+                    asyncio.create_task(manager.broadcast_alert({
+                        "type": "NEW_OUTBREAK",
+                        "data": {
+                            "id": report_id,
+                            "latitude": latitude,
+                            "longitude": longitude,
+                            "crop": analysis_result["crop"],
+                            "disease": analysis_result["disease"],
+                            "description": description or "",
+                            "timestamp": datetime.datetime.now().isoformat()
+                        }
+                    }, source_lat=latitude, source_lon=longitude))
+            except Exception as db_err:
+                print(f"Error saving to DB: {db_err}")
+
         
         # Step 2: Get Advanced AI recommendations (LLM Integration)
         insights = llm_service.get_agronomic_advice(
@@ -58,7 +99,7 @@ async def get_drone_status():
     return {
         "connected": True,
         "battery": "85%",
-        "gps": {"lat": 12.9716, "lon": 77.5946},
+        "gps": {"lat": 40.7250, "lon": -73.9980},
         "altitude": "15m",
         "signal_strength": "High"
     }

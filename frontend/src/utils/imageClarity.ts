@@ -12,9 +12,10 @@ export interface ClarityResults {
 
 const CLARITY_CONFIG = {
   RESOLUTION: 512,
-  SHARPNESS_THRESHOLD: 300, // Balanced threshold to prevent false positives
-  MIN_BRIGHTNESS: 40,
-  MAX_BRIGHTNESS: 240,
+  SHARPNESS_THRESHOLD: 130, // Slightly decreased for improved user experience
+  MIN_BRIGHTNESS: 35,        // Balanced for natural light variations
+  MAX_BRIGHTNESS: 250,
+  DEBUG: true
 };
 
 /**
@@ -37,7 +38,7 @@ export const checkImageClarity = async (file: File): Promise<ClarityResults> => 
 
       // Resize for accurate analysis - higher resolution detects fine-grained blur
       const width = CLARITY_CONFIG.RESOLUTION;
-      const height = (img.height / img.width) * width;
+      const height = Math.floor((img.height / img.width) * width);
       canvas.width = width;
       canvas.height = height;
       
@@ -82,8 +83,8 @@ export const checkImageClarity = async (file: File): Promise<ClarityResults> => 
         error = "Image is too blurry. Please ensure the leaf is in sharp focus.";
       } else if (!isExposed) {
         error = avgBrightness < CLARITY_CONFIG.MIN_BRIGHTNESS 
-          ? "Image is too dark. Please use better lighting." 
-          : "Image is overexposed. Please capture a natural-light shot.";
+          ? `Luminance [${Math.round(avgBrightness)}] is too low. Please use better lighting.` 
+          : `Luminance [${Math.round(avgBrightness)}] exceeds standard sensor tolerance.`;
       }
 
       // Clean up the URL object to prevent memory leaks

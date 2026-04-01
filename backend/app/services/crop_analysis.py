@@ -7,7 +7,7 @@ from app.core.clarity import clarity_validator
 
 class CropAnalysisService:
     @staticmethod
-    def validate_clarity(image_bytes: bytes, threshold: float = 1000.0) -> tuple[bool, str | None]:
+    def validate_clarity(image_bytes: bytes, threshold: float = 130.0) -> tuple[bool, str | None]:
         return clarity_validator.validate(image_bytes, threshold)
 
     @staticmethod

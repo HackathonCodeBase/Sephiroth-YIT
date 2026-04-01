@@ -9,7 +9,7 @@ router = APIRouter()
 async def analyze_crop(
     file: UploadFile = File(...), 
     crop_type: str = Form("auto"),
-    vision_engine: str = Form("mobilenet")
+    vision_engine: str = Form("consolidated_core")
 ):
     """
     Main endpoint for analyzing leaf photographs/drone images.
@@ -22,17 +22,18 @@ async def analyze_crop(
         # Reading file content
         content = await file.read()
         
-        # Step 1: Use CV model (Raw image analysis)
+        # Step 1: Use Sephiroth CV model (Raw image analysis)
         analysis_result = analysis_service.analyze_image(content, crop_type=crop_type, vision_engine=vision_engine)
         
-        # Step 2: Get AI recommendations
+        # Step 2: Get Advanced AI recommendations (LLM Integration)
         insights = llm_service.get_agronomic_advice(
             disease_name=analysis_result["disease"],
             severity=analysis_result.get("severity", "Moderate"),
-            crop_type=analysis_result["crop"]
+            crop_type=analysis_result["crop"],
+            confidence=analysis_result["confidence"]
         )
         
-        # Return full payload for the frontend
+        # Standardized production payload for the Sephiroth dashboard
         return {
             "crop": analysis_result["crop"],
             "disease": analysis_result["disease"],

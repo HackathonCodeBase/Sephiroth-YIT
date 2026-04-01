@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, Cpu, Activity, ChevronRight, Check } from 'lucide-react';
+import { Camera, Cpu, Activity, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface AnalysisPanelProps {
@@ -116,7 +116,7 @@ export default function AnalysisPanel({
                           {id: 'efficientnet', name: 'EfficientNet'}
                         ].find(e => e.id === visionEngine)?.name || visionEngine}
                       </span>
-                      <Cpu className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-orange-500' : ''}`} />
+                      <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-90 text-orange-500' : ''}`} />
                     </div>
                     
                     {isDropdownOpen && (

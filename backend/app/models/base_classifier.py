@@ -78,6 +78,12 @@ class BaseDiseaseClassifier:
         crop = parts[0].replace("_", " ") if len(parts) > 0 else "Unknown"
         disease = parts[1].replace("_", " ") if len(parts) > 1 else "Unknown"
         
+        # Remove redundant crop name from disease if it exists
+        if disease.lower().startswith(crop.lower() + " "):
+            disease = disease[len(crop)+1:]
+        elif disease.lower().startswith(crop.lower()):
+            disease = disease[len(crop):].strip()
+        
         return {
             "crop": crop,
             "disease": disease,

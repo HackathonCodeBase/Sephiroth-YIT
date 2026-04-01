@@ -70,3 +70,4 @@ Thumbs.db
 *.onnx
 *.pb
 checkpoint/
+*.db

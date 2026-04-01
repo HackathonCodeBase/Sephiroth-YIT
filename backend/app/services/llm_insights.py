@@ -126,26 +126,62 @@ class LLMInsightsService:
         }
 
     def _get_fallback_advice(self, disease_name: str, severity: str, crop_type: str) -> Dict[str, Any]:
-        """Static rule-based fallback for critical mission safety."""
+        """Context-aware fallback for critical mission safety when LLMs are offline."""
+        
+        # Knowledge Base for common diseases
+        pathology_db = {
+            "scab": [
+                "Remove and destroy infected fallen leaves to reduce inoculum",
+                "Prune the canopy to increase sunlight penetration and air circulation",
+                "Apply organic sulfur-based fungicides during humid periods",
+                "Avoid overhead irrigation which spreads fungal spores",
+                "Monitor new growth weekly for olive-colored spots"
+            ],
+            "blight": [
+                "Improve soil drainage to prevent root moisture accumulation",
+                "Remove heavily infected lower leaves immediately",
+                "Apply copper-based fungicides as a preventative layer",
+                "Disinfect pruning tools with 70% alcohol between plants",
+                "Increase plant spacing to ensure rapid leaf drying after rain"
+            ],
+            "virus": [
+                "There is no chemical cure; rogue out and burn infected plants",
+                "Control aphid and whitefly populations which act as vectors",
+                "Wash hands with soap after handling infected foliage",
+                "Ensure weed control around the field to remove viral hosts",
+                "Use only certified virus-free seed stock for next cycle"
+            ],
+            "healthy": [
+                "Continue current irrigation and nutrient protocols",
+                "Schedule periodic soil tests to monitor nutrient balance",
+                "Inspect lower canopy bi-weekly for early pest signatures",
+                "Maintain mulch layers to suppress weed competition",
+                "Document environmental conditions for future success modeling"
+            ]
+        }
+
+        # Select relevant advice or default to general care
+        advice_key = "healthy"
+        for key in pathology_db:
+            if key in disease_name.lower():
+                advice_key = key
+                break
+        
+        remedies = pathology_db.get(advice_key, pathology_db["healthy"])
+
         return {
             "disease": disease_name,
             "severity_level": severity,
             "crop_type": crop_type,
             "ai_insights": {
-                "summary": f"Pathogen {disease_name} identified. Pre-monsoon humidity in Mangalore increases risk.",
-                "remedies": [
-                    "Isolate infected plants from the main field flux immediately",
-                    "Monitor soil moisture levels to prevent root anaerobic stress",
-                    "Review irrigation schedules — early morning spraying is optimal",
-                    "Apply general organic copper-based fungicides if humidity > 70%",
-                    "Prune affected yellow foliage to improve airflow through canopy"
-                ],
+                "summary": f"Pathogen identification: {disease_name}. Local humidity context in Mangalore indicates {severity.lower()} risk levels.",
+                "remedies": remedies,
                 "location": "Mangalore, KA (Coastal Belt)",
                 "time_context": "Safe Windows: 6:00 AM — 9:00 AM",
                 "recovery": "14-25 Days with protocol adherence",
-                "preventive_note": "Ensure certified pathology-free seeds for next cultivation cycle."
+                "preventive_note": f"Maintain strict sanitation to prevent {disease_name} spread."
             },
-            "ai_engine": "Sephiroth Static Guard",
+            "ai_engine": "Sephiroth Logic-Guard (Offline)",
             "timestamp": time.time()
         }
 

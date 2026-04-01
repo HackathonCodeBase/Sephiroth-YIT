@@ -15,8 +15,6 @@ interface AnalysisPanelProps {
   handleUpload: () => void;
   blurError: string | null;
   checkingBlur?: boolean;
-  description?: string;
-  setDescription?: (val: string) => void;
 }
 
 export default function AnalysisPanel({
@@ -31,8 +29,6 @@ export default function AnalysisPanel({
   handleUpload,
   blurError,
   checkingBlur,
-  description,
-  setDescription
 }: AnalysisPanelProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -153,18 +149,6 @@ export default function AnalysisPanel({
               </div>
             </div>
 
-            {/* Description/Symptoms Input */}
-            <div className="bg-slate-50 p-4 lg:p-6 rounded-[32px]">
-              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-2">
-                Field Notes / Symptoms
-              </label>
-              <textarea
-                value={description || ''}
-                onChange={(e) => setDescription && setDescription(e.target.value)}
-                placeholder="Observed symptoms, weather conditions..."
-                className="w-full bg-white rounded-2xl p-4 text-[13px] text-slate-600 outline-none focus:ring-2 focus:ring-orange-500/20 border-none resize-none h-20"
-              />
-            </div>
             
           <button 
             type="button"

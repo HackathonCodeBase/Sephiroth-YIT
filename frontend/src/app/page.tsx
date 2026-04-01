@@ -22,7 +22,6 @@ export default function Home() {
   const [checkingBlur, setCheckingBlur] = useState(false);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [description, setDescription] = useState<string>('');
 
   useEffect(() => {
     // Set system as online immediately for demonstration
@@ -93,7 +92,6 @@ export default function Home() {
         formData.append('latitude', String(latitude));
         formData.append('longitude', String(longitude));
       }
-      formData.append('description', description);
 
       const response = await fetch(`${API_BASE_URL}/api/v1/crop-analysis`, {
         method: 'POST',
@@ -156,8 +154,6 @@ export default function Home() {
               handleUpload={handleUpload}
               blurError={blurError}
               checkingBlur={checkingBlur}
-              description={description}
-              setDescription={setDescription}
             />
           </div>
         </div>

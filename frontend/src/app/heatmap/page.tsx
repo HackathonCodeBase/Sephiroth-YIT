@@ -55,6 +55,26 @@ export default function HeatmapPage() {
         setData(prev => {
           // Remove existing simulation role marker if any
           const filtered = prev.filter(p => !p.is_simulator);
+          
+          let notified = undefined;
+          let last_distance = undefined;
+          
+          // If there are historical outbreaks, calculate status against the latest one so it doesn't show "awaiting" when reloading
+          if (filtered.length > 0) {
+            const latest = filtered[filtered.length - 1];
+            if (latest.latitude && latest.longitude) {
+              const R = 6371.0;
+              const dLat = (latest.latitude - myLat) * Math.PI / 180;
+              const dLon = (latest.longitude - myLon) * Math.PI / 180;
+              const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(myLat * Math.PI / 180) * Math.cos(latest.latitude * Math.PI / 180) *
+                        Math.sin(dLon/2) * Math.sin(dLon/2);
+              const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+              last_distance = R * c;
+              notified = last_distance <= 3.0;
+            }
+          }
+
           return [...filtered, {
             id: `sim-${simRole}`,
             latitude: myLat,
@@ -63,7 +83,9 @@ export default function HeatmapPage() {
             simRole,
             crop: `Person ${simRole}`,
             disease: `Simulation Client`,
-            description: `Distance from A approx ${simRole === 'B' ? '0.5' : '3.5'} km.`
+            description: `Distance from A approx ${simRole === 'B' ? '0.5' : '3.5'} km.`,
+            notified,
+            last_distance
           }];
         });
       };
@@ -123,6 +145,30 @@ export default function HeatmapPage() {
         const json = await res.json();
         setData(prev => {
           const sims = prev.filter(p => p.is_simulator);
+          
+          if (json.length > 0 && sims.length > 0) {
+            const latest = json[json.length - 1]; // newest outbreak
+            const updatedSims = sims.map(sim => {
+                if (latest.latitude && latest.longitude) {
+                  const R = 6371.0;
+                  const dLat = (latest.latitude - sim.latitude) * Math.PI / 180;
+                  const dLon = (latest.longitude - sim.longitude) * Math.PI / 180;
+                  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                            Math.cos(sim.latitude * Math.PI / 180) * Math.cos(latest.latitude * Math.PI / 180) *
+                            Math.sin(dLon/2) * Math.sin(dLon/2);
+                  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                  const last_distance = R * c;
+                  return {
+                     ...sim,
+                     notified: last_distance <= 3.0,
+                     last_distance
+                  };
+                }
+                return sim;
+            });
+            return [...json, ...updatedSims];
+          }
+
           return [...json, ...sims];
         });
       }

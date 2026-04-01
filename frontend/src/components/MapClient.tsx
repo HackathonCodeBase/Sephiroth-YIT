@@ -87,6 +87,17 @@ export default function MapClient({ data }: MapClientProps) {
   // Default center (can be user's loc or center of the world)
   const defaultCenter: [number, number] = [20.0, 77.0]; 
 
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371.0;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   return (
     <div style={{ height: '70vh', width: '100%', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)' }}>
       <MapContainer center={defaultCenter} zoom={4} style={{ height: '100%', width: '100%' }}>
@@ -98,11 +109,24 @@ export default function MapClient({ data }: MapClientProps) {
         <HeatmapLayer data={data} />
         {data
           .filter((item) => item.latitude && item.longitude)
-          .map((item, idx) => (
+          .map((item, idx) => {
+            let simNotified = item.notified;
+            let simDistance = item.last_distance;
+            
+            if (item.is_simulator) {
+               const outbreaks = data.filter(d => !d.is_simulator && d.latitude && d.longitude);
+               if (outbreaks.length > 0 && typeof simDistance === 'undefined') {
+                   const latest = outbreaks[outbreaks.length - 1];
+                   simDistance = getDistance(item.latitude, item.longitude, latest.latitude, latest.longitude);
+                   simNotified = simDistance <= 3.0;
+               }
+            }
+
+            return (
             <Marker key={item.id || idx} position={[item.latitude, item.longitude]}>
               <Popup>
                 {item.is_simulator ? (
-                  <div className="font-sans text-center min-w-[150px]">
+                  <div className="font-sans text-center min-w-[200px]">
                     <div className="font-bold text-sm text-slate-800 uppercase mb-1">
                       {item.crop}
                     </div>
@@ -110,9 +134,19 @@ export default function MapClient({ data }: MapClientProps) {
                       {item.description}
                     </div>
                     
-                    {item.notified !== undefined && (
-                      <div className={`mt-2 p-1.5 rounded text-xs font-bold text-white uppercase tracking-wider ${item.notified ? 'bg-rose-500' : 'bg-emerald-500'}`}>
-                        {item.notified ? `ALERTED (${item.last_distance?.toFixed(1)} km)` : `SAFE / NO ALERT (${item.last_distance?.toFixed(1)} km)`}
+                    {simNotified !== undefined ? (
+                      simNotified ? (
+                        <div className="mt-2 p-2 rounded text-xs font-bold text-white bg-rose-500 shadow-md uppercase tracking-wider">
+                          🚨 NOTIFIED ({simDistance?.toFixed(2)} km)
+                        </div>
+                      ) : (
+                        <div className="mt-2 p-2 rounded text-xs font-bold text-slate-600 bg-slate-100 uppercase tracking-wider border border-slate-200">
+                          📍 DISTANCE: {simDistance?.toFixed(2)} km
+                        </div>
+                      )
+                    ) : (
+                      <div className="mt-2 p-2 rounded text-[10px] font-bold text-slate-500 bg-slate-100 uppercase tracking-wider border border-slate-200 border-dashed">
+                        AWAITING OUTBREAK NOTIFICATION...
                       </div>
                     )}
                   </div>
@@ -133,7 +167,8 @@ export default function MapClient({ data }: MapClientProps) {
                 )}
               </Popup>
             </Marker>
-        ))}
+          )})
+        }
       </MapContainer>
     </div>
   );

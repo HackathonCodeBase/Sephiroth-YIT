@@ -124,7 +124,7 @@ export default function AnalysisPanel({
                         {id: 'mobilenet', name: 'MobileNet V2'},
                         {id: 'densenet', name: 'DenseNet-121'},
                         {id: 'resnet', name: 'ResNet-50'},
-                        {id: 'efficientnet', name: 'EffNet-B4 (Beta)'}
+                        {id: 'efficientnet', name: 'EffNet-B4'}
                       ].map((engine) => (
                         <div 
                           key={engine.id}

@@ -11,3 +11,4 @@ openai
 tensorflow-cpu
 huggingface_hub
 h5py
+scikit-image

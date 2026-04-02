@@ -13,6 +13,14 @@ export default function Home() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Temporal Analysis State
+  const [isTemporalMode, setIsTemporalMode] = useState(false);
+  const [file2, setFile2] = useState<File | null>(null);
+  const [imagePreview2, setImagePreview2] = useState<string | null>(null);
+  const [date1, setDate1] = useState('');
+  const [date2, setDate2] = useState('');
+
   const [analyzing, setAnalyzing] = useState(false);
   const [backendStatus, setBackendStatus] = useState<unknown>(null);
   const [cropType, setCropType] = useState('Tomato');
@@ -43,54 +51,92 @@ export default function Home() {
 
       setFile(selectedFile);
       setImagePreview(URL.createObjectURL(selectedFile));
+      // Auto-set today's date if empty
+      if (!date1) setDate1(new Date().toISOString().split('T')[0]);
     }
   };
 
-  const onEngineChange = (engineId: string) => {
-    setVisionEngine(engineId);
-    // Auto-re-analyze if an image is already uploaded
-    if (file && !analyzing) {
-       handleUpload(engineId);
+  const handleFile2Change = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile2(selectedFile);
+      setImagePreview2(URL.createObjectURL(selectedFile));
+      // Auto-set today's date if empty
+      if (!date2) setDate2(new Date().toISOString().split('T')[0]);
     }
   };
 
   const handleUpload = async (overrideEngine?: string) => {
     if (!file) return;
+    if (isTemporalMode && !file2) return;
+    
     setAnalyzing(true);
 
     try {
-      // Import API_BASE_URL dynamically or assume it's available
       const { API_BASE_URL } = await import('@/config');
       
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('crop_type', cropType);
-      formData.append('vision_engine', overrideEngine || visionEngine);
-
-      const response = await fetch(`${API_BASE_URL}/api/v1/crop-analysis`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Analysis failed');
-      }
-
-      const result = await response.json();
       
-      // Store real results in session storage for the analysis page
-      sessionStorage.setItem('cropAnalysisResults', JSON.stringify(result));
-      if (imagePreview) {
-          sessionStorage.setItem('cropImagePreview', imagePreview);
+      if (isTemporalMode && file2) {
+        formData.append('file1', file);
+        formData.append('file2', file2);
+        formData.append('date1', date1);
+        formData.append('date2', date2);
+        
+        const response = await fetch(`${API_BASE_URL}/api/v1/temporal/compare`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Temporal analysis failed');
+        }
+
+        const result = await response.json();
+        
+        // Store temporal results
+        sessionStorage.setItem('cropAnalysisResults', JSON.stringify({
+          ...result,
+          isTemporal: true,
+          baselinePreview: imagePreview,
+          latestPreview: imagePreview2,
+          baselineDate: date1,
+          latestDate: date2
+        }));
+        
+        router.push('/analysis');
+      } else {
+        formData.append('file', file);
+        formData.append('crop_type', cropType);
+        formData.append('vision_engine', overrideEngine || visionEngine);
+
+        const response = await fetch(`${API_BASE_URL}/api/v1/crop-analysis`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Analysis failed');
+        }
+
+        const result = await response.json();
+        
+        sessionStorage.setItem('cropAnalysisResults', JSON.stringify({
+          ...result,
+          isTemporal: false
+        }));
+        if (imagePreview) {
+            sessionStorage.setItem('cropImagePreview', imagePreview);
+        }
+        
+        router.push('/analysis');
       }
-      
-      setAnalyzing(false);
-      router.push('/analysis');
     } catch (err) {
       console.error("Analysis failed:", err);
-      // In case of error, show alert or handle gracefully
       alert(err instanceof Error ? err.message : "Error connecting to AI Matrix");
+    } finally {
       setAnalyzing(false);
     }
   };
@@ -114,11 +160,35 @@ export default function Home() {
           backendStatus={!!backendStatus} 
         />
 
-        <div className="flex justify-center w-full">
+        <div className="flex flex-col items-center gap-8">
+          {/* Mode Switcher */}
+          <div className="bg-slate-100 p-1.5 rounded-[24px] flex items-center shadow-inner border border-slate-200">
+            <button 
+              onClick={() => setIsTemporalMode(false)}
+              className={`px-8 py-3 rounded-[20px] text-[10px] font-black uppercase tracking-widest transition-all ${!isTemporalMode ? 'bg-white text-orange-600 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              Matrix Scan
+            </button>
+            <button 
+              onClick={() => setIsTemporalMode(true)}
+              className={`px-8 py-3 rounded-[20px] text-[10px] font-black uppercase tracking-widest transition-all ${isTemporalMode ? 'bg-white text-orange-600 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              Temporal Analysis
+            </button>
+          </div>
+
           <div className="w-full max-w-4xl">
             <AnalysisPanel 
               imagePreview={imagePreview}
               file={file}
+              imagePreview2={imagePreview2}
+              file2={file2}
+              isTemporalMode={isTemporalMode}
+              handleFile2Change={handleFile2Change}
+              date1={date1}
+              setDate1={setDate1}
+              date2={date2}
+              setDate2={setDate2}
               analyzing={analyzing}
               cropType={cropType}
               setCropType={setCropType}

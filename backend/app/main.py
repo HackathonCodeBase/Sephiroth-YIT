@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 from app.api.v1.endpoints.analysis import router as analysis_router
+from app.api.v1.endpoints.temporal import router as temporal_router
 
 load_dotenv()
 
@@ -31,3 +32,4 @@ def health_check():
 
 # Including routers
 app.include_router(analysis_router, prefix="/api/v1", tags=["Analysis"])
+app.include_router(temporal_router, prefix="/api/v1/temporal", tags=["Temporal Analysis"])

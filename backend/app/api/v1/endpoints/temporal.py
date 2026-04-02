@@ -31,6 +31,16 @@ async def compare_temporal(
         # 2. Standard Disease Classification for the Latest Image
         try:
             analysis_result = analysis_service.analyze_image(content2, crop_type=crop_type, vision_engine=vision_engine)
+            
+            # PATHOLOGICAL CONTINUITY: If recovering from a disease to a healthy state, 
+            # keep the disease identity for clarity.
+            if status == "recovery" and "Healthy" in analysis_result["disease"]:
+                try:
+                    baseline_result = analysis_service.analyze_image(content1, crop_type=crop_type, vision_engine=vision_engine)
+                    analysis_result["disease"] = f"{baseline_result['disease']} (Biomass Recovery)"
+                except:
+                    pass
+
             insights = llm_service.get_agronomic_advice(
                 disease_name=analysis_result["disease"],
                 severity=analysis_result.get("severity", "Moderate"),

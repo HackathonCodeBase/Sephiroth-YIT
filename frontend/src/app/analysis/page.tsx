@@ -144,7 +144,7 @@ export default function AnalysisPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <DiagnosticReport results={results.latest_analysis} onEngineChange={reAnalyze} />
+              <DiagnosticReport results={results.latest_analysis} onEngineChange={reAnalyze} isTemporal={true} />
             </motion.div>
           )}
         </div>

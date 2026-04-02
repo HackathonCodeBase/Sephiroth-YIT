@@ -178,55 +178,64 @@ export default function AnalysisPanel({
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Vision Engine</label>
-                <div className="relative">
-                    <div 
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="w-full bg-white border-2 border-slate-100 hover:border-orange-500/30 rounded-[24px] px-5 py-4 text-xs font-bold flex items-center justify-between transition-all shadow-sm cursor-pointer"
-                    >
-                      <span className="text-slate-700 uppercase">
-                        {[
-                          {id: 'consolidated_core', name: 'Consolidated Result'},
-                          {id: 'mobilenet', name: 'MobileNet'},
-                          {id: 'densenet', name: 'DenseNet'},
-                          {id: 'resnet', name: 'ResNet'},
-                          {id: 'efficientnet', name: 'EfficientNet'}
-                        ].find(e => e.id === visionEngine)?.name || visionEngine}
-                      </span>
-                      <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-90 text-orange-500' : ''}`} />
-                    </div>
-                    
-                    {isDropdownOpen && (
-                      <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border-2 border-orange-100 rounded-[24px] shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                         {[
-                          {id: 'consolidated_core', name: 'Consolidated Result'},
-                          {id: 'mobilenet', name: 'MobileNet'},
-                          {id: 'densenet', name: 'DenseNet'},
-                          {id: 'resnet', name: 'ResNet'},
-                          {id: 'efficientnet', name: 'EfficientNet'}
-                        ].map((engine) => (
-                          <div 
-                            key={engine.id}
-                            onClick={() => {
-                              setVisionEngine(engine.id);
-                              setIsDropdownOpen(false);
-                            }}
-                            className={`px-5 py-4 text-xs font-bold cursor-pointer transition-colors ${
-                              visionEngine === engine.id 
-                              ? 'bg-orange-50 text-orange-600' 
-                              : 'text-slate-700 hover:bg-slate-50 hover:text-orange-500'
-                            }`}
-                          >
-                            {engine.name}
-                          </div>
-                        ))}
+            {!isTemporalMode && (
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Vision Engine</label>
+                  <div className="relative">
+                      <div 
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="w-full bg-white border-2 border-slate-100 hover:border-orange-500/30 rounded-[24px] px-5 py-4 text-xs font-bold flex items-center justify-between transition-all shadow-sm cursor-pointer"
+                      >
+                        <span className="text-slate-700 uppercase">
+                          {[
+                            {id: 'consolidated_core', name: 'Consolidated Result'},
+                            {id: 'mobilenet', name: 'MobileNet'},
+                            {id: 'densenet', name: 'DenseNet'},
+                            {id: 'resnet', name: 'ResNet'},
+                            {id: 'efficientnet', name: 'EfficientNet'}
+                          ].find(e => e.id === visionEngine)?.name || visionEngine}
+                        </span>
+                        <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-90 text-orange-500' : ''}`} />
                       </div>
-                    )}
+                      
+                      {isDropdownOpen && (
+                        <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border-2 border-orange-100 rounded-[24px] shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                           {[
+                            {id: 'consolidated_core', name: 'Consolidated Result'},
+                            {id: 'mobilenet', name: 'MobileNet'},
+                            {id: 'densenet', name: 'DenseNet'},
+                            {id: 'resnet', name: 'ResNet'},
+                            {id: 'efficientnet', name: 'EfficientNet'}
+                          ].map((engine) => (
+                            <div 
+                              key={engine.id}
+                              onClick={() => {
+                                setVisionEngine(engine.id);
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`px-5 py-4 text-xs font-bold cursor-pointer transition-colors ${
+                                visionEngine === engine.id 
+                                ? 'bg-orange-50 text-orange-600' 
+                                : 'text-slate-700 hover:bg-slate-50 hover:text-orange-500'
+                              }`}
+                            >
+                              {engine.name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {isTemporalMode && (
+               <div className="p-4 bg-orange-50/50 rounded-2xl border border-orange-100/50 flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Fusion Analytics Core</span>
+                  <span className="text-[10px] font-black uppercase text-orange-600 tracking-widest px-1">Consolidated Result Active</span>
+               </div>
+            )}
             
           <button 
             type="button"

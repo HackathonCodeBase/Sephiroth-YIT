@@ -7,9 +7,10 @@ interface DiagnosticReportProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   results: any;
   onEngineChange?: (engineId: string) => void;
+  isTemporal?: boolean;
 }
 
-export default function DiagnosticReport({ results, onEngineChange }: DiagnosticReportProps) {
+export default function DiagnosticReport({ results, onEngineChange, isTemporal }: DiagnosticReportProps) {
   if (!results) return null;
 
   // Match the active engine from metadata or results architecture
@@ -79,7 +80,7 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
                 {id: 'densenet', name: 'DenseNet'},
                 {id: 'resnet', name: 'ResNet'},
                 {id: 'efficientnet', name: 'EfficientNet'}
-              ].map((engine) => (
+              ].filter(eng => !isTemporal || eng.id === 'consolidated_core').map((engine) => (
                 <button 
                   key={engine.id}
                   onClick={() => onEngineChange?.(engine.id)}

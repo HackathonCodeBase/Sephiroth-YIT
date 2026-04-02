@@ -83,9 +83,25 @@ class TemporalService:
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
         return mask
 
+    def extract_pathology_mask(self, img):
+        """
+        Isolates diseased/pathology spots (brown/yellow/necrotic).
+        """
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        
+        # Brown/Yellow necrotic spots range
+        lower_necrotic = np.array([10, 50, 20])
+        upper_necrotic = np.array([30, 255, 200])
+        mask = cv2.inRange(hsv, lower_necrotic, upper_necrotic)
+        
+        # Refine mask
+        kernel = np.ones((3, 3), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        return mask
+
     def analyze_temporal_ultra(self, img1_bytes: bytes, img2_bytes: bytes):
         """
-        Main entry point for robust temporal analysis.
+        Main entry point for robust temporal analysis with direction detection.
         """
         n1 = np.frombuffer(img1_bytes, np.uint8)
         img1 = cv2.imdecode(n1, cv2.IMREAD_COLOR)
@@ -93,7 +109,7 @@ class TemporalService:
         img2 = cv2.imdecode(n2, cv2.IMREAD_COLOR)
 
         if img1 is None or img2 is None:
-            return None, 0.0
+            return None, 0.0, "error"
 
         # 1. Normalize
         img1_n = self.normalize_lighting(img1)
@@ -102,43 +118,46 @@ class TemporalService:
         # 2. Align
         img2_a = self.align_images_ultra(img1_n, img2_n)
 
-        # 3. ROI
+        # 3. ROI Extraction
         m1 = self.extract_leaf_roi(img1_n)
         m2 = self.extract_leaf_roi(img2_a)
-        
-        # Combine masks to find valid leaf area in both
         combined_roi = cv2.bitwise_and(m1, m2)
-
-        # 4. Change Detection (Absolute Difference)
-        diff = cv2.absdiff(img1_n, img2_a)
-        diff_gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
         
-        # Apply ROI
-        diff_masked = cv2.bitwise_and(diff_gray, diff_gray, mask=combined_roi)
-
-        # 5. Threshold significant changes (Spots vs noise)
-        # Lowered threshold to detect subtle brown spots in demo images
-        _, thresh = cv2.threshold(diff_masked, 20, 255, cv2.THRESH_BINARY)
-        
-        # 6. Scoring
         leaf_area = cv2.countNonZero(combined_roi)
-        infected_diff = cv2.countNonZero(thresh)
-        
-        if leaf_area < 100: # Threshold too small to be a leaf
-            return None, 0.0
-            
-        score = (infected_diff / leaf_area) * 100
-        score = min(max(score, 0.0), 100.0)
+        if leaf_area < 100:
+            return None, 0.0, "no_leaf_detected"
 
-        # 7. Visualization (High contrast delta map)
-        # Enhance the heatmap for better demo visibility
-        heatmap = cv2.applyColorMap(cv2.convertScaleAbs(diff_masked, alpha=2.5), cv2.COLORMAP_JET)
-        heatmap = cv2.bitwise_and(heatmap, heatmap, mask=thresh)
+        # 4. Pathology Density Comparison (Directional Logic)
+        p1 = self.extract_pathology_mask(img1_n)
+        p2 = self.extract_pathology_mask(img2_a)
+        
+        # Only consider pathology within the combined ROI
+        p1 = cv2.bitwise_and(p1, combined_roi)
+        p2 = cv2.bitwise_and(p2, combined_roi)
+        
+        area1 = cv2.countNonZero(p1)
+        area2 = cv2.countNonZero(p2)
+        
+        # 5. Differential Identification
+        # Use absdiff for the visualization map
+        diff_gray = cv2.absdiff(p1, p2)
+        
+        # Calculate raw delta
+        delta_area = area2 - area1
+        score = (abs(delta_area) / leaf_area) * 100
+        score = min(max(score, 0.0), 100.0)
+        
+        status = "progression" if delta_area >= 0 else "recovery"
+
+        # 6. Visualization (High contrast delta map)
+        # We highlight exactly where the change happened
+        heatmap = cv2.applyColorMap(cv2.convertScaleAbs(diff_gray, alpha=255.0), cv2.COLORMAP_JET)
+        heatmap = cv2.bitwise_and(heatmap, heatmap, mask=diff_gray)
         
         _, buffer = cv2.imencode('.png', heatmap)
         base64_str = base64.b64encode(buffer).decode('utf-8')
 
-        return base64_str, score
+        return base64_str, round(float(score), 2), status
 
 temporal_service = TemporalService()
 

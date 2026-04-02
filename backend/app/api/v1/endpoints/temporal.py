@@ -26,7 +26,7 @@ async def compare_temporal(
         content2 = await file2.read()
         
         # 1. Temporal Progression Analysis
-        diff_base64, progression_score = temporal_service.analyze_temporal_ultra(content1, content2)
+        diff_base64, progression_score, status = temporal_service.analyze_temporal_ultra(content1, content2)
         
         # 2. Standard Disease Classification for the Latest Image
         try:
@@ -69,6 +69,7 @@ async def compare_temporal(
             "diff_image": f"data:image/png;base64,{diff_base64}",
             "latest_analysis": latest_analysis,
             "status": "Success",
+            "compare_status": status,
             "message": "Temporal and diagnostic analysis completed successfully.",
             "metadata": {
                 "baseline_date": date1,

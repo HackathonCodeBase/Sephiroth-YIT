@@ -134,8 +134,12 @@ export default function AnalysisPage() {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col gap-1"
             >
-              <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-900 leading-none">Temporal Matrix Comparison</h1>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500">Pathology Progression Analysis Engine v2.1.0</p>
+              <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-900 leading-none">
+                {results.compare_status === 'recovery' ? 'Biomass Recovery Matrix' : 'Temporal Matrix Comparison'}
+              </h1>
+              <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${results.compare_status === 'recovery' ? 'text-emerald-500' : 'text-orange-500'}`}>
+                {results.compare_status === 'recovery' ? 'Pathology Regression Analysis Engine' : 'Pathology Progression Analysis Engine'} v2.1.0
+              </p>
             </motion.div>
           )}
 
@@ -193,8 +197,10 @@ export default function AnalysisPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <p className="text-[7px] font-black uppercase tracking-widest text-orange-500 px-1 text-center">Evolution Delta</p>
-                        <div className="aspect-square rounded-[24px] overflow-hidden border border-orange-200 bg-slate-900 shadow-xl shadow-orange-500/10">
+                        <p className={`text-[7px] font-black uppercase tracking-widest px-1 text-center ${results.compare_status === 'recovery' ? 'text-emerald-500' : 'text-orange-500'}`}>
+                          {results.compare_status === 'recovery' ? 'Recovery Delta' : 'Evolution Delta'}
+                        </p>
+                        <div className={`aspect-square rounded-[24px] overflow-hidden border bg-slate-900 shadow-xl ${results.compare_status === 'recovery' ? 'border-emerald-200 shadow-emerald-500/10' : 'border-orange-200 shadow-orange-500/10'}`}>
                           <img src={results.diff_image} className="w-full h-full object-contain" alt="Delta Map" />
                         </div>
                       </div>
@@ -207,9 +213,9 @@ export default function AnalysisPage() {
                         <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-800">Pathology Vector Justification</h4>
                       </div>
                       <p className="text-[10px] leading-relaxed text-slate-500 font-medium italic">
-                        "The system utilizes **Enhanced Correlation Coefficient (ECC)** alignment to register the follow-up matrix against the baseline. 
-                        The detected **{results.progression_score}% expansion** is derived from a pixel-precise delta map, 
-                        filtering out lighting variations and focusing exclusively on structural degradation in the ROI."
+                        "The system utilizes **Enhanced Correlation Coefficient (ECC)** alignment to register the follow-up matrix. 
+                        The detected **{results.progression_score}% {results.compare_status === 'recovery' ? 'reduction' : 'expansion'}** 
+                        is derived from pathology-mask density analysis, indicating significant {results.compare_status === 'recovery' ? 'recovery' : 'degradation'} in the ROI."
                       </p>
                     </div>
 
@@ -223,7 +229,7 @@ export default function AnalysisPage() {
                           { date: results.baselineDate ? results.baselineDate.split('-').slice(1).reverse().join('/') : '03/28', score: 8.2 },
                           { date: results.latestDate ? results.latestDate.split('-').slice(1).reverse().join('/') : '04/02', score: results.progression_score, active: true },
                         ].map((item, idx) => (
-                          <div key={idx} className={`flex-shrink-0 px-3 py-2 rounded-xl border transition-all ${item.active ? 'bg-orange-500 border-orange-400 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                          <div key={idx} className={`flex-shrink-0 px-3 py-2 rounded-xl border transition-all ${item.active ? (results.compare_status === 'recovery' ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg' : 'bg-orange-500 border-orange-400 text-white shadow-lg') : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
                             <p className="text-[7px] font-black uppercase opacity-70">{item.date}</p>
                             <p className="text-[10px] font-black">{item.score}%</p>
                           </div>
@@ -269,15 +275,19 @@ export default function AnalysisPage() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-white p-6 rounded-[32px] border border-orange-100">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4">Progression Index</p>
+                      <div className={`bg-white p-6 rounded-[32px] border ${results.compare_status === 'recovery' ? 'border-emerald-100' : 'border-orange-100'}`}>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4">
+                          {results.compare_status === 'recovery' ? 'Recovery Index' : 'Progression Index'}
+                        </p>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-6xl font-black text-orange-600 tracking-tighter">{results.progression_score}</span>
+                          <span className={`text-6xl font-black tracking-tighter ${results.compare_status === 'recovery' ? 'text-emerald-600' : 'text-orange-600'}`}>
+                            {results.progression_score}
+                          </span>
                           <span className="text-xl font-black text-slate-400 uppercase">%</span>
                         </div>
                         <div className="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-gradient-to-r from-orange-500 to-rose-600 rounded-full" 
+                            className={`h-full rounded-full ${results.compare_status === 'recovery' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' : 'bg-gradient-to-r from-orange-500 to-rose-600'}`} 
                             style={{ width: `${Math.min(results.progression_score * 4, 100)}%` }}
                           ></div>
                         </div>
@@ -285,9 +295,12 @@ export default function AnalysisPage() {
                       
                       <div className="bg-white p-6 rounded-[32px] border border-slate-100 flex flex-col justify-center">
                         <p className="text-xs font-bold text-slate-600 leading-relaxed italic">
-                          "{results.progression_score > 5 
-                            ? "Significant biological progression detected in the last cycle. Immediate intervention recommended." 
-                            : "Minimal progression detected. Continue current remediation protocol and monitor closely."}"
+                          {results.compare_status === 'recovery' 
+                            ? `"Significant biomass recovery detected. Remediation protocols are effective. Continue monitoring for structural stabilization."`
+                            : `"${results.progression_score > 5 
+                              ? "Significant biological progression detected in the last cycle. Immediate intervention recommended." 
+                              : "Minimal progression detected. Continue current remediation protocol and monitor closely."}"`
+                          }
                         </p>
                       </div>
                     </div>

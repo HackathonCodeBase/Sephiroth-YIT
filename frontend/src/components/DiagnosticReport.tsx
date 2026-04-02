@@ -25,7 +25,8 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
     activeEngine.includes('mobilenet') ? 'mobilenet' :
     activeEngine.includes('densenet') ? 'densenet' :
     activeEngine.includes('resnet') ? 'resnet' :
-    activeEngine.includes('efficientnet') ? 'efficientnet' : 'consolidated_core';
+    activeEngine.includes('efficientnet') ? 'efficientnet' : 
+    activeEngine.includes('vit') ? 'vit' : 'consolidated_core';
 
   return (
     <div className="glass-white shadow-2xl bg-white/90 border-orange-100 border-2 p-8 md:p-10 rounded-[40px] space-y-8 relative overflow-hidden backdrop-blur-3xl animate-in fade-in duration-700">
@@ -113,6 +114,7 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
            <div className="flex flex-wrap gap-2">
               {[
                 {id: 'consolidated_core', name: 'Consolidated Result'},
+                {id: 'vit', name: 'Vision Transformer'},
                 {id: 'mobilenet', name: 'MobileNet'},
                 {id: 'densenet', name: 'DenseNet'},
                 {id: 'resnet', name: 'ResNet'},

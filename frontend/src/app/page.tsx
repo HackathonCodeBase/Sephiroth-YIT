@@ -149,7 +149,7 @@ export default function Home() {
               cropType={cropType}
               setCropType={setCropType}
               visionEngine={visionEngine}
-              setVisionEngine={setVisionEngine}
+              setVisionEngine={onEngineChange}
               handleFileChange={handleFileChange}
               handleUpload={handleUpload}
               blurError={blurError}

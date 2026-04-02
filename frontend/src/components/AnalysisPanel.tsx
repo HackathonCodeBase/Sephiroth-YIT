@@ -113,7 +113,8 @@ export default function AnalysisPanel({
                           {id: 'mobilenet', name: 'MobileNet'},
                           {id: 'densenet', name: 'DenseNet'},
                           {id: 'resnet', name: 'ResNet'},
-                          {id: 'efficientnet', name: 'EfficientNet'}
+                          {id: 'efficientnet', name: 'EfficientNet'},
+                          {id: 'vit', name: 'Vision Transformer'}
                         ].find(e => e.id === visionEngine)?.name || visionEngine}
                       </span>
                       <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-90 text-orange-500' : ''}`} />
@@ -126,7 +127,8 @@ export default function AnalysisPanel({
                           {id: 'mobilenet', name: 'MobileNet'},
                           {id: 'densenet', name: 'DenseNet'},
                           {id: 'resnet', name: 'ResNet'},
-                          {id: 'efficientnet', name: 'EfficientNet'}
+                          {id: 'efficientnet', name: 'EfficientNet'},
+                          {id: 'vit', name: 'Vision Transformer'}
                         ].map((engine) => (
                           <div 
                             key={engine.id}

@@ -2,6 +2,8 @@ from .mobilenet import MobileNetClassifier
 from .densenet import DenseNetClassifier
 from .resnet import ResNetClassifier
 from .efficientnet import EfficientNetClassifier
+from .vit import VisionTransformerClassifier
+
 
 class DiseaseClassifier:
     def __init__(self):
@@ -9,8 +11,10 @@ class DiseaseClassifier:
             "mobilenet": MobileNetClassifier(),
             "densenet": DenseNetClassifier(),
             "resnet": ResNetClassifier(),
-            "efficientnet": EfficientNetClassifier()
+            "efficientnet": EfficientNetClassifier(),
+            "vit": VisionTransformerClassifier()
         }
+
 
     def predict(self, image_bytes, engine_type="consolidated_core"):
         engine_type = engine_type.lower()

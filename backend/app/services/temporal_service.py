@@ -144,10 +144,17 @@ class TemporalService:
         
         # Calculate raw delta
         delta_area = area2 - area1
-        score = (abs(delta_area) / leaf_area) * 100
-        score = min(max(score, 0.0), 100.0)
-        
         status = "progression" if delta_area >= 0 else "recovery"
+
+        if status == "recovery":
+            # RECOVERY INDEX: What percentage of the baseline infection is gone?
+            # This is more intuitive for users (e.g. "100% Recovered")
+            score = (abs(delta_area) / area1 * 100) if area1 > 0 else 0
+        else:
+            # PROGRESSION INDEX: Global increase in leaf severity
+            score = (abs(delta_area) / leaf_area * 100)
+            
+        score = min(max(score, 0.0), 100.0)
 
         # 6. Visualization (High contrast delta map)
         # We highlight exactly where the change happened

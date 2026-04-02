@@ -37,14 +37,22 @@ async def compare_temporal(
             res2 = analysis_service.analyze_image(content2, crop_type=crop_type, vision_engine=vision_engine)
             
             # Determine which yields a more reliable pathology identity
-            # (We prioritize the diseased scan over a 'Healthy' scan)
+            # We select the classification with the HIGHEST CONFIDENCE among non-healthy results.
             is_res2_healthy = "Healthy" in res2["disease"]
             is_res1_healthy = "Healthy" in res1["disease"]
             
-            if is_res2_healthy and not is_res1_healthy:
-                primary_res = res1
+            if is_res1_healthy and is_res2_healthy:
+                primary_res = res2 # Both healthy
+            elif not is_res1_healthy and is_res2_healthy:
+                primary_res = res1 # Baseline was diseased
+            elif is_res1_healthy and not is_res2_healthy:
+                primary_res = res2 # Follow-up is diseased
             else:
-                primary_res = res2
+                # Both are diseased, pick the one with HIGHEST CONFIDENCE for stability
+                if res1["confidence"] >= res2["confidence"]:
+                    primary_res = res1
+                else:
+                    primary_res = res2
 
             # Apply Status Suffix
             display_disease = primary_res["disease"]

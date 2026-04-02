@@ -10,6 +10,7 @@ async def analyze_crop(
     file: UploadFile = File(...), 
     crop_type: str = Form("auto"),
     vision_engine: str = Form("consolidated_core"),
+    llm_provider: str = Form("auto"),
     latitude: float = Form(None),
     longitude: float = Form(None),
     description: str = Form(None)
@@ -71,7 +72,8 @@ async def analyze_crop(
             disease_name=analysis_result["disease"],
             severity=analysis_result.get("severity", "Moderate"),
             crop_type=analysis_result["crop"],
-            confidence=analysis_result["confidence"]
+            confidence=analysis_result["confidence"],
+            provider=llm_provider
         )
         
         # Standardized production payload for the Sephiroth dashboard

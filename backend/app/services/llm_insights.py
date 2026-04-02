@@ -85,7 +85,8 @@ class LLMInsightsService:
         disease_name: str, 
         severity: str, 
         crop_type: str = "auto",
-        confidence: Optional[float] = None
+        confidence: Optional[float] = None,
+        provider: str = "auto"
     ) -> Dict[str, Any]:
         """
         Main entry point for generating expert AI recommendations.
@@ -102,14 +103,21 @@ class LLMInsightsService:
         insights = None
         engine = "Cloud (Groq Llama-3.1)"
 
-        # 1. Try Groq (Primary)
-        if self.config.groq_api_key:
+        if provider == "groq" and self.config.groq_api_key:
             insights = self._get_groq_response(prompt)
-            
-        # 2. Try Ollama (Secondary Fallback)
-        if not insights:
+            engine = "Cloud (Groq Llama-3.1)"
+        elif provider == "ollama":
             insights = self._get_ollama_response(prompt)
             engine = "Local (Ollama Llama-3.1)"
+        else:
+            # Auto mode: 1. Try Groq (Primary)
+            if self.config.groq_api_key:
+                insights = self._get_groq_response(prompt)
+                
+            # 2. Try Ollama (Secondary Fallback)
+            if not insights:
+                insights = self._get_ollama_response(prompt)
+                engine = "Local (Ollama Llama-3.1)"
 
         # 3. Static Conservative Fallback (Safety Layer)
         if not insights:

@@ -3,7 +3,7 @@ import numpy as np
 
 class ClarityValidator:
     @staticmethod
-    def validate(image_bytes: bytes, laplacian_threshold: float = 10.0) -> tuple[bool, str | None]:
+    def validate(image_bytes: bytes, laplacian_threshold: float = 25.0) -> tuple[bool, str | None]:
         """
         Uses Laplacian variance for sharpness and mean for brightness.
         Returns (is_invalid, error_message).

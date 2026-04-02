@@ -5,9 +5,9 @@ import Header from '@/components/Header';
 import MapComponent from '@/components/MapComponent';
 import { API_BASE_URL } from '@/config';
 
-// Base coordinates for simulation (Node A / origin)
-const BASE_LAT = 40.7250;
-const BASE_LON = -73.9980;
+// Base coordinates for simulation (Mangalore, India)
+const BASE_LAT = 12.9141;
+const BASE_LON = 74.8560;
 
 export default function HeatmapPage() {
   const [data, setData] = useState<any[]>([]);
@@ -71,7 +71,7 @@ export default function HeatmapPage() {
                         Math.sin(dLon/2) * Math.sin(dLon/2);
               const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
               last_distance = R * c;
-              notified = last_distance <= 3.0;
+              notified = last_distance <= 2.0;
             }
           }
 
@@ -83,7 +83,7 @@ export default function HeatmapPage() {
             simRole,
             crop: `Person ${simRole}`,
             disease: `Simulation Client`,
-            description: `Distance from A approx ${simRole === 'B' ? '0.5' : '3.5'} km.`,
+            description: `Simulation node relative to Node A.`,
             notified,
             last_distance
           }];
@@ -160,7 +160,7 @@ export default function HeatmapPage() {
                   const last_distance = R * c;
                   return {
                      ...sim,
-                     notified: last_distance <= 3.0,
+                      notified: last_distance <= 2.0,
                      last_distance
                   };
                 }
@@ -221,12 +221,10 @@ export default function HeatmapPage() {
                 </div>
                 <div className="font-bold text-lg leading-tight mb-1">
                    {alert.crop}: <span className="underline">{alert.disease.replace(/_/g, ' ')}</span>
+                   <div className="mt-2 p-2 rounded text-xs font-bold text-white bg-rose-500 shadow-md uppercase tracking-wider">
+                     🚨 NOTIFIED
+                   </div>
                 </div>
-                {alert.distance_km && (
-                  <div className="text-sm font-semibold mb-2 text-rose-100 bg-rose-800/50 p-2 rounded-md">
-                     ⚠️ {alert.distance_km.toFixed(1)} km away from your location
-                  </div>
-                )}
                 
                 <div className="text-xs space-y-1 bg-white/10 p-2 rounded">
                   <div className="font-bold">Precautionary Methods:</div>

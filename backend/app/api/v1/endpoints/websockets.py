@@ -41,7 +41,7 @@ class ConnectionManager:
                 if has_loc:
                     dist = haversine_distance(source_lat, source_lon, loc["lat"], loc["lon"])
                     custom_alert["client_distance_km"] = dist
-                    custom_alert["is_at_risk"] = dist <= 3.0
+                    custom_alert["is_at_risk"] = dist <= 2.0
                 else:
                     custom_alert["client_distance_km"] = None
                     custom_alert["is_at_risk"] = False

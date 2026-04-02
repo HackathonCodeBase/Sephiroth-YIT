@@ -60,15 +60,16 @@ function HeatmapLayer({ data }: { data: any[] }) {
     if (L.heatLayer) {
       // @ts-ignore
       layerRef.current = L.heatLayer(points, {
-        radius: 25,
-        blur: 15,
-        maxZoom: 10,
+        radius: 35,
+        blur: 20,
+        maxZoom: 13,
+        minOpacity: 0.4,
         gradient: {
-          0.4: 'green',
-          0.6: 'cyan',
-          0.7: 'lime',
-          0.8: 'yellow',
-          1.0: 'red',
+          0.2: '#3b82f6', // blue
+          0.4: '#22d3ee', // cyan
+          0.6: '#4ade80', // green
+          0.8: '#facc15', // yellow
+          1.0: '#ef4444'  // red
         },
       }).addTo(map);
     }
@@ -118,7 +119,7 @@ export default function MapClient({ data }: MapClientProps) {
                if (outbreaks.length > 0 && typeof simDistance === 'undefined') {
                    const latest = outbreaks[outbreaks.length - 1];
                    simDistance = getDistance(item.latitude, item.longitude, latest.latitude, latest.longitude);
-                   simNotified = simDistance <= 3.0;
+                   simNotified = simDistance <= 2.0;
                }
             }
 
@@ -136,12 +137,12 @@ export default function MapClient({ data }: MapClientProps) {
                     
                     {simNotified !== undefined ? (
                       simNotified ? (
-                        <div className="mt-2 p-2 rounded text-xs font-bold text-white bg-rose-500 shadow-md uppercase tracking-wider">
-                          🚨 NOTIFIED ({simDistance?.toFixed(2)} km)
+                        <div className="mt-2 p-2 rounded text-xs font-bold text-white bg-rose-500 shadow-md uppercase tracking-wider text-center">
+                          🚨 NOTIFIED
                         </div>
                       ) : (
-                        <div className="mt-2 p-2 rounded text-xs font-bold text-slate-600 bg-slate-100 uppercase tracking-wider border border-slate-200">
-                          📍 DISTANCE: {simDistance?.toFixed(2)} km
+                        <div className="mt-2 p-2 rounded text-[10px] font-bold text-slate-600 bg-slate-100 uppercase tracking-widest border border-slate-200 text-center">
+                          📍 OUTSIDE ALERT ZONE
                         </div>
                       )
                     ) : (

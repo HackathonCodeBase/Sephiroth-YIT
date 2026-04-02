@@ -25,13 +25,13 @@ class LLMInsightsService:
             "You are the Sephiroth AI Agronomist, a world-class plant pathologist. "
             "Analyze the given crop disease and severity. Provide structured, actionable agronomic advice. "
             "You MUST respond ONLY with a valid JSON object following the EXACT structure provided. "
-            "Keep advice focused on Mangalore, Karnataka, India humidity and seasonal context (Early April — pre-monsoon)."
+            "Generate your advice based on the provided location (latitude/longitude) if available, considering local seasonal and humidity contexts."
         )
 
-    def _get_groq_response(self, prompt: str) -> Optional[Dict[str, Any]]:
+    def _get_groq_response(self, prompt: str) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
         """Query Groq Cloud for high-performance inference."""
         if not self.config.groq_api_key:
-            return None
+            return None, "Groq API key not configured."
             
         try:
             url = "https://api.groq.com/openai/v1/chat/completions"
@@ -53,16 +53,17 @@ class LLMInsightsService:
             if response.status_code == 200:
                 result = response.json()
                 content = result['choices'][0]['message']['content']
-                return json.loads(content)
-            return None
+                return json.loads(content), None
+            else:
+                return None, f"Groq Error: {response.status_code} {response.reason}"
         except Exception as e:
             print(f"Groq Inference Error: {e}")
-            return None
+            return None, f"Groq Error: {str(e)[:100]}"
 
-    def _get_ollama_response(self, prompt: str) -> Optional[Dict[str, Any]]:
+    def _get_ollama_response(self, prompt: str) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
         """Query local Ollama instance as a privacy-focused fallback."""
         if not self.config.fallback_enabled:
-            return None
+            return None, "Ollama fallback is disabled."
             
         try:
             data = {
@@ -74,11 +75,12 @@ class LLMInsightsService:
             response = requests.post(self.config.ollama_url, json=data, timeout=15)
             if response.status_code == 200:
                 content = response.json().get('response', '{}')
-                return json.loads(content)
-            return None
+                return json.loads(content), None
+            else:
+                return None, f"Ollama Error: Status {response.status_code}"
         except Exception as e:
             print(f"Ollama Fallback Error: {e}")
-            return None
+            return None, f"Ollama Error: {str(e)[:100]}"
 
     def get_agronomic_advice(
         self, 
@@ -86,43 +88,59 @@ class LLMInsightsService:
         severity: str, 
         crop_type: str = "auto",
         confidence: Optional[float] = None,
-        provider: str = "auto"
+        provider: str = "auto",
+        temporal_status: Optional[str] = None,
+        latitude: Optional[float] = None,
+        longitude: Optional[float] = None
     ) -> Dict[str, Any]:
         """
         Main entry point for generating expert AI recommendations.
         """
+        # Context-aware temporal descriptor
+        temporal_context = ""
+        if temporal_status == "recovery":
+            temporal_context = "CRITICAL CONTEXT: The disease is currently RECOVERING/RESOLVING based on temporal analysis. Focus on recovery maintenance and preventing relapse."
+        elif temporal_status == "progression":
+            temporal_context = "CRITICAL CONTEXT: The disease is currently PROGRESSING/SPREADING based on temporal analysis. Focus on aggressive containment and immediate intervention."
+        elif temporal_status == "stable":
+            temporal_context = "CRITICAL CONTEXT: The disease is STABLE but persistent based on temporal analysis."
+
         # Formulate a precise prompt for the LLM
         prompt = (
             f"Crop: {crop_type}\n"
             f"Detected Disease: {disease_name}\n"
             f"Severity Index: {severity}\n"
-            f"Vision Model Confidence: {confidence if confidence else 'N/A'}\n\n"
+            f"Vision Model Confidence: {confidence if confidence else 'N/A'}\n"
+            f"Location: {f'Lat {latitude}, Lon {longitude}' if latitude and longitude else 'Global/Contextual'}\n"
+            f"{temporal_context}\n\n"
             "Generate JSON with these keys: summary, remedies (list of 5 brief steps), location, time_context, recovery, preventive_note."
         )
 
         insights = None
         engine = "Cloud (Groq Llama-3.1)"
+        fallback_reason = None
 
-        if provider == "groq" and self.config.groq_api_key:
-            insights = self._get_groq_response(prompt)
-            engine = "Cloud (Groq Llama-3.1)"
-        elif provider == "ollama":
-            insights = self._get_ollama_response(prompt)
-            engine = "Local (Ollama Llama-3.1)"
-        else:
-            # Auto mode: 1. Try Groq (Primary)
-            if self.config.groq_api_key:
-                insights = self._get_groq_response(prompt)
-                
-            # 2. Try Ollama (Secondary Fallback)
+        # 1. Primary Attempt: Groq (if auto or groq requested)
+        if provider in ["auto", "groq"]:
+            insights, error = self._get_groq_response(prompt)
             if not insights:
-                insights = self._get_ollama_response(prompt)
-                engine = "Local (Ollama Llama-3.1)"
+                fallback_reason = f"Groq Offline ({error})"
+                print(f"[LLM] Groq failure: {error}. Falling back...")
 
-        # 3. Static Conservative Fallback (Safety Layer)
+        # 2. Secondary Attempt: Ollama/Llama (if auto or ollama requested, or fallback from groq)
+        if not insights and provider in ["auto", "groq", "ollama"]:
+            insights, error = self._get_ollama_response(prompt)
+            if insights:
+                engine = f"Local (Ollama Llama-3.1) - Switched: {fallback_reason}" if fallback_reason else "Local (Ollama Llama-3.1)"
+            else:
+                ollama_error = f"Ollama Offline ({error})"
+                fallback_reason = f"{fallback_reason} + {ollama_error}" if fallback_reason else ollama_error
+                print(f"[LLM] Ollama failure: {error}. Falling back to Rulebook...")
+
+        # 3. Final Fallback: Rulebook (if everything above failed)
         if not insights:
             insights = self._get_fallback_advice(disease_name, severity, crop_type)["ai_insights"]
-            engine = "Legacy (AgroCare Rulebook)"
+            engine = f"Legacy (AgroCare Rulebook) - Switched: {fallback_reason}" if fallback_reason else "Legacy (AgroCare Rulebook)"
 
         return {
             "disease": disease_name,

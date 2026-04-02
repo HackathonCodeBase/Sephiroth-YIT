@@ -85,7 +85,9 @@ async def analyze_crop(
             "severity": analysis_result.get("severity", "Moderate"),
             "intelligence": insights,
             "metadata": {
-                "engine": vision_engine
+                "engine": vision_engine,
+                "latitude": latitude,
+                "longitude": longitude
             }
         }
         

@@ -11,6 +11,7 @@ openai
 tensorflow-cpu
 huggingface_hub
 h5py
-
 libsql-client
 websockets
+scikit-image
+requests

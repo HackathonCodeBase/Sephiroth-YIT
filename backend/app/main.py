@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from app.api.v1.endpoints.analysis import router as analysis_router
 from app.api.v1.endpoints.websockets import router as websockets_router
 from app.api.v1.endpoints.outbreaks import router as outbreaks_router
+from app.api.v1.endpoints.temporal import router as temporal_router
 
 load_dotenv()
 
@@ -35,3 +36,4 @@ def health_check():
 app.include_router(analysis_router, prefix="/api/v1", tags=["Analysis"])
 app.include_router(outbreaks_router, prefix="/api/v1", tags=["Outbreaks"])
 app.include_router(websockets_router, prefix="/api/v1", tags=["WebSockets"])
+app.include_router(temporal_router, prefix="/api/v1/temporal", tags=["Temporal Analysis"])

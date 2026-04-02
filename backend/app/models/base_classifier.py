@@ -6,6 +6,33 @@ import tensorflow as tf
 from huggingface_hub import hf_hub_download
 from dotenv import load_dotenv
 
+# BRAIN CALIBRATION: Monkey-patch Keras to handle serialization mismatches (Keras 2/3)
+import keras
+from keras import layers
+
+def _patch_keras():
+    print("[MATRIX_CORE] Patching Keras layers for cross-version compatibility...")
+    
+    # Patch Dense layer to ignore quantization_config from legacy H5 files
+    original_dense_from_config = layers.Dense.from_config
+    @classmethod
+    def patched_dense_from_config(cls, config):
+        config.pop('quantization_config', None)
+        return original_dense_from_config(config)
+    layers.Dense.from_config = patched_dense_from_config
+    
+    # Patch InputLayer for configuration key mapping
+    original_input_from_config = layers.InputLayer.from_config
+    @classmethod
+    def patched_input_from_config(cls, config):
+        # Keras 3 uses 'batch_shape', Keras 2 used 'input_shape' / 'batch_input_shape'
+        # Most Keras 3 loaders handle this, but we ensure 'optional' is removed if present
+        config.pop('optional', None)
+        return original_input_from_config(config)
+    layers.InputLayer.from_config = patched_input_from_config
+
+_patch_keras()
+
 load_dotenv()
 
 class BaseDiseaseClassifier:
@@ -41,7 +68,8 @@ class BaseDiseaseClassifier:
                 import shutil
                 shutil.copy(downloaded_path, local_model_path)
             
-            self.model = tf.keras.models.load_model(local_model_path)
+            # Use compile=False and specific loading options for Keras 3 compatibility
+            self.model = tf.keras.models.load_model(local_model_path, compile=False)
             print(f"Vision Engine [{self.architecture_name}] loaded.")
             return self.model
         except Exception as e:

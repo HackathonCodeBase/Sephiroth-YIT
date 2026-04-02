@@ -8,7 +8,14 @@ interface RemediationSectionProps {
 }
 
 export default function RemediationSection({ results }: RemediationSectionProps) {
-  const remedies = results?.intelligence?.ai_insights?.remedies || [];
+  // Defensive path resolution for nested AI intelligence payloads
+  const remedies = results?.intelligence?.ai_insights?.remedies || 
+                   results?.ai_insights?.remedies || 
+                   results?.remedies || [];
+
+  const intelligence = results?.intelligence?.ai_insights || 
+                       results?.ai_insights || 
+                       results || {};
 
   return (
     <div className="glass-white h-full shadow-xl bg-white border-orange-100 border-2 p-3 md:p-4 rounded-[32px] flex flex-col relative overflow-hidden backdrop-blur-xl group">
@@ -18,7 +25,7 @@ export default function RemediationSection({ results }: RemediationSectionProps)
       
       <div className="relative z-10 mb-3">
         <div className="flex items-center w-full">
-           <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 whitespace-nowrap">── AI Recommendation </h4>
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-orange-500 whitespace-nowrap">── AI Recommendation </h4>
            <div className="h-[1px] w-full bg-gradient-to-r from-orange-500 to-transparent ml-3"></div>
         </div>
       </div>
@@ -37,7 +44,7 @@ export default function RemediationSection({ results }: RemediationSectionProps)
           </div>
         )) : (
           <div className="py-10 text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-300 italic">
               Scanning for optimal remediation protocols...
             </p>
           </div>
@@ -47,24 +54,24 @@ export default function RemediationSection({ results }: RemediationSectionProps)
       <div className="relative z-10 pt-3 mt-3 border-t border-slate-100 space-y-3">
          <div className="flex items-center gap-3">
             <div className="w-1 h-1 bg-orange-500 rounded-full animate-pulse"></div>
-            <span className="text-[12px] font-black text-slate-900 uppercase tracking-tighter">
-              Est. Recovery Index: <span className="text-orange-600 ml-1 text-[13px] underline underline-offset-4 decoration-orange-200">
-                {typeof results?.intelligence?.ai_insights?.recovery === 'object' && results?.intelligence?.ai_insights?.recovery !== null
-                  ? Object.values(results.intelligence.ai_insights.recovery).filter(Boolean).join(' | ')
-                  : (results?.intelligence?.ai_insights?.recovery || 'Quantifying...')}
+             <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">
+              Est. Recovery Index: <span className="text-orange-600 ml-1 text-sm underline underline-offset-4 decoration-orange-200">
+                {typeof intelligence?.recovery === 'object' && intelligence?.recovery !== null
+                  ? Object.values(intelligence.recovery).filter(Boolean).join(' | ')
+                  : (intelligence?.recovery || 'Quantifying...')}
               </span>
             </span>
          </div>
          
          <div className="space-y-1 p-3 bg-slate-50/50 rounded-[20px] border border-slate-100 shadow-inner group">
-            <span className="text-[9px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2">
+             <span className="text-xs font-black text-orange-600 uppercase tracking-widest flex items-center gap-2">
               <Info className="w-3 h-3" />
               Preventive Protocol
             </span>
-            <p className="text-[12px] text-slate-500 font-bold leading-tight italic group-hover:text-slate-700 transition-colors">
-              {typeof results?.intelligence?.ai_insights?.preventive_note === 'object' && results?.intelligence?.ai_insights?.preventive_note !== null
-                ? Object.values(results.intelligence.ai_insights.preventive_note).filter(Boolean).join(' | ')
-                : (results?.intelligence?.ai_insights?.preventive_note || 'Sensor fusion pending further observation.')}
+            <p className="text-sm text-slate-500 font-bold leading-tight italic group-hover:text-slate-700 transition-colors">
+              {typeof intelligence?.preventive_note === 'object' && intelligence?.preventive_note !== null
+                ? Object.values(intelligence.preventive_note).filter(Boolean).join(' | ')
+                : (intelligence?.preventive_note || 'Sensor fusion pending further observation.')}
             </p>
          </div>
       </div>

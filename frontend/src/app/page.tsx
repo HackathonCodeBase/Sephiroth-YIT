@@ -45,7 +45,15 @@ export default function Home() {
       }
 
       setFile(selectedFile);
-      setImagePreview(URL.createObjectURL(selectedFile));
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Basic check to see if it's too large, but most mobile photos are around 2-4MB 
+        // Data URL will be larger. If it fails to save later, we will catch it.
+        setImagePreview(result);
+      };
+      reader.readAsDataURL(selectedFile);
 
       try {
         const gpsData = await exifr.gps(selectedFile);
@@ -108,7 +116,11 @@ export default function Home() {
       // Store real results in session storage for the analysis page
       sessionStorage.setItem('cropAnalysisResults', JSON.stringify(result));
       if (imagePreview) {
-          sessionStorage.setItem('cropImagePreview', imagePreview);
+          try {
+              sessionStorage.setItem('cropImagePreview', imagePreview);
+          } catch(e) {
+              console.warn("Could not save image preview to session storage due to size limits.", e);
+          }
       }
       
       setAnalyzing(false);

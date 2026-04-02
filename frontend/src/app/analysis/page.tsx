@@ -15,6 +15,7 @@ export default function AnalysisPage() {
   const [results, setResults] = useState<any>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeLlmProvider, setActiveLlmProvider] = useState<string>('auto');
 
   useEffect(() => {
     try {
@@ -38,21 +39,39 @@ export default function AnalysisPage() {
     }
   }, [router]);
 
-  const reAnalyze = async (engineId: string) => {
+  const reAnalyze = async (engineId: string, overrideLlmProvider?: string) => {
+    const currentProvider = overrideLlmProvider || activeLlmProvider;
+    if (overrideLlmProvider) setActiveLlmProvider(overrideLlmProvider);
+    
     setLoading(true);
     try {
       const { API_BASE_URL } = await import('@/config');
       const storedImage = sessionStorage.getItem('cropImagePreview');
       if (!storedImage) return;
 
-      const res = await fetch(storedImage);
-      const blob = await res.blob();
-      const file = new File([blob], "re-scan.jpg", { type: "image/jpeg" });
+      let file: File;
+      if (storedImage.startsWith('data:')) {
+        const arr = storedImage.split(',');
+        const mimeMatch = arr[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        file = new File([u8arr], "re-scan.jpg", { type: mime });
+      } else {
+        const res = await fetch(storedImage);
+        const blob = await res.blob();
+        file = new File([blob], "re-scan.jpg", { type: "image/jpeg" });
+      }
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('crop_type', results?.intelligence?.crop_type || results?.crop || 'Tomato');
+      formData.append('crop_type', results?.intelligence?.crop_type || results?.crop || 'auto');
       formData.append('vision_engine', engineId);
+      formData.append('llm_provider', currentProvider);
 
       const response = await fetch(`${API_BASE_URL}/api/v1/crop-analysis`, {
         method: 'POST',
@@ -123,7 +142,12 @@ export default function AnalysisPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <DiagnosticReport results={results} onEngineChange={reAnalyze} />
+            <DiagnosticReport 
+              results={results} 
+              onEngineChange={(engineId) => reAnalyze(engineId)} 
+              onLlmChange={(llmId) => reAnalyze(results?.metadata?.engine || 'consolidated_core', llmId)}
+              activeLlmProvider={activeLlmProvider}
+            />
           </motion.div>
         </div>
 

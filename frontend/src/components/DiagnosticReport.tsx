@@ -7,9 +7,11 @@ interface DiagnosticReportProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   results: any;
   onEngineChange?: (engineId: string) => void;
+  onLlmChange?: (llmId: string) => void;
+  activeLlmProvider?: string;
 }
 
-export default function DiagnosticReport({ results, onEngineChange }: DiagnosticReportProps) {
+export default function DiagnosticReport({ results, onEngineChange, onLlmChange, activeLlmProvider = 'auto' }: DiagnosticReportProps) {
   if (!results) return null;
 
   // Checking map logic
@@ -103,34 +105,62 @@ export default function DiagnosticReport({ results, onEngineChange }: Diagnostic
         </div>
 
         {/* Vision Architecture Selectors (Model Switchers) */}
-        <div className="space-y-4 pt-4 border-t border-orange-100/50">
-           <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Vision Architectures</span>
-              <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                 <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Active Execution</span>
+        <div className="space-y-4 pt-4 border-t border-orange-100/50 flex flex-col xl:flex-row justify-between gap-6">
+           <div className="flex-1 space-y-4">
+              <div className="flex items-center justify-between">
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Vision Architectures</span>
+                 <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Active Execution</span>
+                 </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                 {[
+                   {id: 'consolidated_core', name: 'Consolidated Result'},
+                   {id: 'vit', name: 'Vision Transformer'},
+                   {id: 'mobilenet', name: 'MobileNet'},
+                   {id: 'densenet', name: 'DenseNet'},
+                   {id: 'resnet', name: 'ResNet'},
+                   {id: 'efficientnet', name: 'EfficientNet'}
+                 ].map((engine) => (
+                   <button 
+                     key={engine.id}
+                     onClick={() => onEngineChange?.(engine.id)}
+                     className={`px-4 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all border-2 
+                       ${selectedVision === engine.id 
+                         ? 'bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/30' 
+                         : 'bg-white text-slate-400 border-slate-100 hover:border-orange-200 hover:text-orange-500'}`}
+                   >
+                     {engine.name}
+                   </button>
+                 ))}
               </div>
            </div>
-           <div className="flex flex-wrap gap-2">
-              {[
-                {id: 'consolidated_core', name: 'Consolidated Result'},
-                {id: 'vit', name: 'Vision Transformer'},
-                {id: 'mobilenet', name: 'MobileNet'},
-                {id: 'densenet', name: 'DenseNet'},
-                {id: 'resnet', name: 'ResNet'},
-                {id: 'efficientnet', name: 'EfficientNet'}
-              ].map((engine) => (
-                <button 
-                  key={engine.id}
-                  onClick={() => onEngineChange?.(engine.id)}
-                  className={`px-4 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all border-2 
-                    ${selectedVision === engine.id 
-                      ? 'bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/30' 
-                      : 'bg-white text-slate-400 border-slate-100 hover:border-orange-200 hover:text-orange-500'}`}
-                >
-                  {engine.name}
-                </button>
-              ))}
+
+           <div className="flex-none space-y-4 border-t xl:border-t-0 xl:border-l border-orange-100/50 xl:pl-6 pt-4 xl:pt-0">
+               <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Agronomic Insights AI</span>
+               </div>
+               <div className="flex flex-wrap gap-2">
+                  {[
+                    {id: 'groq', name: 'GROK (Cloud)', activeIf: ['auto', 'groq']},
+                    {id: 'ollama', name: 'OLLAMA (Local)', activeIf: ['ollama']}
+                  ].map((llm) => {
+                    const isActive = llm.activeIf.includes(activeLlmProvider);
+                    return (
+                      <button 
+                        key={llm.id}
+                        onClick={() => onLlmChange?.(llm.id)}
+                        className={`px-4 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all border-2 
+                          ${isActive
+                            ? 'bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/30' 
+                            : 'bg-white text-slate-400 border-slate-100 hover:border-orange-200 hover:text-orange-500'}`}
+                      >
+                        {llm.name}
+                      </button>
+                    );
+                  })}
+               </div>
            </div>
         </div>
 

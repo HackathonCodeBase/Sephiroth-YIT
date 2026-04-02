@@ -28,35 +28,48 @@ async def compare_temporal(
         # 1. Temporal Progression Analysis
         diff_base64, progression_score, status = temporal_service.analyze_temporal_ultra(content1, content2)
         
-        # 2. Standard Disease Classification for the Latest Image
+        # 2. Pathological Identity Continuity
+        # We analyze both to find the most confident disease identity across the timeline.
         try:
-            analysis_result = analysis_service.analyze_image(content2, crop_type=crop_type, vision_engine=vision_engine)
+            # Analyze baseline
+            res1 = analysis_service.analyze_image(content1, crop_type=crop_type, vision_engine=vision_engine)
+            # Analyze follow-up
+            res2 = analysis_service.analyze_image(content2, crop_type=crop_type, vision_engine=vision_engine)
             
-            # PATHOLOGICAL CONTINUITY: If recovering from a disease to a healthy state, 
-            # keep the disease identity for clarity.
-            if status == "recovery" and "Healthy" in analysis_result["disease"]:
-                try:
-                    baseline_result = analysis_service.analyze_image(content1, crop_type=crop_type, vision_engine=vision_engine)
-                    analysis_result["disease"] = f"{baseline_result['disease']} (Biomass Recovery)"
-                except:
-                    pass
+            # Determine which yields a more reliable pathology identity
+            # (We prioritize the diseased scan over a 'Healthy' scan)
+            is_res2_healthy = "Healthy" in res2["disease"]
+            is_res1_healthy = "Healthy" in res1["disease"]
+            
+            if is_res2_healthy and not is_res1_healthy:
+                primary_res = res1
+            else:
+                primary_res = res2
+
+            # Apply Status Suffix
+            display_disease = primary_res["disease"]
+            if status == "recovery":
+                display_disease = f"{display_disease} (Resolved)"
+            elif status == "progression" and not is_res2_healthy:
+                display_disease = f"{display_disease} (Active)"
 
             insights = llm_service.get_agronomic_advice(
-                disease_name=analysis_result["disease"],
-                severity=analysis_result.get("severity", "Moderate"),
-                crop_type=analysis_result["crop"],
-                confidence=analysis_result["confidence"]
+                disease_name=display_disease,
+                severity=primary_res.get("severity", "Moderate"),
+                crop_type=primary_res["crop"],
+                confidence=primary_res["confidence"]
             )
 
             latest_analysis = {
-                "crop": analysis_result["crop"],
-                "disease": analysis_result["disease"],
-                "confidence": analysis_result["confidence"],
-                "architecture": analysis_result["architecture"],
-                "severity": analysis_result.get("severity", "Moderate"),
+                "crop": primary_res["crop"],
+                "disease": display_disease,
+                "confidence": primary_res["confidence"],
+                "architecture": primary_res["architecture"],
+                "severity": primary_res.get("severity", "Moderate"),
                 "intelligence": insights,
                 "metadata": {
-                    "engine": vision_engine
+                    "engine": vision_engine,
+                    "timeline_direction": status
                 }
             }
         except Exception as ae:

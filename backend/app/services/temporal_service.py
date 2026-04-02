@@ -128,10 +128,6 @@ class TemporalService:
             return None, 0.0
             
         score = (infected_diff / leaf_area) * 100
-        # If score is too low but we know there's a change, slightly boost it for demo visibility
-        if score > 0.5 and score < 5.0:
-            score = score * 2.5 # Boost subtle changes for the UI
-        
         score = min(max(score, 0.0), 100.0)
 
         # 7. Visualization (High contrast delta map)

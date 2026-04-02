@@ -60,7 +60,12 @@ class BaseDiseaseClassifier:
     def predict(self, image_bytes):
         model = self._load_model()
         if not model:
-            return {"label": "Neural Error", "confidence": 0.0, "architecture": self.architecture_name}
+            return {
+                "crop": "Unknown", 
+                "disease": "Neural Error", 
+                "confidence": 0.0, 
+                "architecture": self.architecture_name
+            }
             
         processed_data = self.preprocess_image(image_bytes)
         predictions = model.predict(processed_data)

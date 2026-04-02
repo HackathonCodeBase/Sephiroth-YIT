@@ -28,29 +28,42 @@ async def compare_temporal(
         # 1. Temporal Progression Analysis
         diff_base64, progression_score = temporal_service.analyze_temporal_ultra(content1, content2)
         
-        # 2. Standard Disease Classification for the Latest Image
-        analysis_result = analysis_service.analyze_image(content2, crop_type=crop_type, vision_engine=vision_engine)
-        insights = llm_service.get_agronomic_advice(
-            disease_name=analysis_result["disease"],
-            severity=analysis_result.get("severity", "Moderate"),
-            crop_type=analysis_result["crop"],
-            confidence=analysis_result["confidence"]
-        )
-
+        # 2. Standard Disease Classification for the Latest Image (Robust fallback)
         latest_analysis = {
-            "crop": analysis_result["crop"],
-            "disease": analysis_result["disease"],
-            "confidence": analysis_result["confidence"],
-            "architecture": analysis_result["architecture"],
-            "severity": analysis_result.get("severity", "Moderate"),
-            "intelligence": insights,
-            "metadata": {
-                "engine": vision_engine
-            }
+            "crop": "Unknown",
+            "disease": "Analysis Pending",
+            "confidence": 0.0,
+            "architecture": vision_engine,
+            "severity": "Unknown",
+            "intelligence": "Diagnostic engine is currently calibrating. Please check progression deltas."
         }
 
+        try:
+            analysis_result = analysis_service.analyze_image(content2, crop_type=crop_type, vision_engine=vision_engine)
+            insights = llm_service.get_agronomic_advice(
+                disease_name=analysis_result["disease"],
+                severity=analysis_result.get("severity", "Moderate"),
+                crop_type=analysis_result["crop"],
+                confidence=analysis_result["confidence"]
+            )
+
+            latest_analysis = {
+                "crop": analysis_result["crop"],
+                "disease": analysis_result["disease"],
+                "confidence": analysis_result["confidence"],
+                "architecture": analysis_result["architecture"],
+                "severity": analysis_result.get("severity", "Moderate"),
+                "intelligence": insights,
+                "metadata": {
+                    "engine": vision_engine
+                }
+            }
+        except Exception as ae:
+            print(f"Sub-analysis failed: {ae}")
+            # Fallback is already set above
+
         if diff_base64 is None:
-            raise HTTPException(status_code=500, detail="Temporal analysis failed.")
+            raise HTTPException(status_code=500, detail="Temporal registration failed.")
 
         return {
             "progression_score": float(f"{progression_score:.2f}"),

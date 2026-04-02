@@ -209,6 +209,32 @@ export default function Home() {
           </p>
         </div>
       </div>
+
+      {/* Futuristic Loading Overlay */}
+      {analyzing && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="text-center space-y-6 max-w-xs px-6">
+            <div className="relative mx-auto w-24 h-24">
+               <div className="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+               <div className="absolute inset-0 rounded-full border-4 border-orange-500 border-t-transparent animate-spin"></div>
+               <div className="absolute inset-0 m-auto w-8 h-8 text-orange-500 animate-pulse flex items-center justify-center">
+                  <div className="w-2 h-8 bg-orange-500/20 absolute rotate-45"></div>
+                  <div className="w-2 h-8 bg-orange-500/20 absolute -rotate-45"></div>
+                  <span className="font-black text-[10px]">AI</span>
+               </div>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900">Pathology Core Active</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 animate-pulse">Generating Matrix Report...</p>
+              <div className="flex gap-1 justify-center">
+                 <div className="w-1 h-1 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                 <div className="w-1 h-1 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                 <div className="w-1 h-1 bg-orange-400 rounded-full animate-bounce"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

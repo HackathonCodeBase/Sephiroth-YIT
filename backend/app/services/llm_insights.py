@@ -72,7 +72,7 @@ class LLMInsightsService:
                 "stream": False,
                 "format": "json"
             }
-            response = requests.post(self.config.ollama_url, json=data, timeout=15)
+            response = requests.post(self.config.ollama_url, json=data, timeout=30)
             if response.status_code == 200:
                 content = response.json().get('response', '{}')
                 return json.loads(content), None
